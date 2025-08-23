@@ -1,5 +1,6 @@
 <template>
   <AdminLayout>
+    <template #title>Your Building</template>
     <div v-if="store.loading">Loading…</div>
     <div v-else class="grid">
       <!-- Existing buildings -->
@@ -20,14 +21,15 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import AdminLayout from '@/components/AdminLayout.vue'
+import { useRouter } from 'vue-router'
+import AdminLayout from '@/components/AdminSidePanel.vue'
 import BuildingCard from '@/components/BuildingCard.vue'
 import { useBuildings } from '@/stores/buildings' // <-- your store file
 
+const router = useRouter()
 const store = useBuildings()
 
 onMounted(() => { void store.fetch() })
-
 const isEmpty = computed(() => !store.loading && store.items.length === 0)
 
 async function addBuilding(): Promise<void> {
@@ -41,23 +43,9 @@ async function deleteBuilding(id: string): Promise<void> {
 }
 
 function openBuilding(id: string): void {
-  // hook up routing later
-  alert(`Open building ${id}`)
+  router.push({ name: 'building', params: { id }})
 }
 </script>
 
 
-<style scoped>
-.grid {
-  margin-top: 15px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  width: 100%;
-}
-
-.empty { 
-  margin-top: 12px; 
-  color: #6a8772; 
-}
-</style>
+<style src="../styles/DashboardView.css"></style>

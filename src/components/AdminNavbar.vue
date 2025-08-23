@@ -17,7 +17,7 @@
     <div class="nav-right">
       <slot name="actions" />
       <slot name="avatar">
-        <div class="profile" aria-label="Account" />
+        <font-awesome-icon icon="user"/>
       </slot>
     </div>
   </header>
@@ -34,51 +34,4 @@ defineProps<{
 defineEmits<{ (e: 'back'): void }>()
 </script>
 
-<style scoped>
-.navbar{
-  position: sticky; 
-  top: 0; 
-  z-index: 10;
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between;
-  height: 70px; 
-  padding: 0 16px;
-  background: #fdf9f4; 
-  border-bottom: 1px solid #e7ebe7;
-}
-
-.nav-left { 
-  display:flex; 
-  align-items:center; 
-  gap:10px 
-}
-
-.back-btn { 
-  border:0; 
-  background:#e6efe8; 
-  border-radius:8px; 
-  padding:4px 8px; 
-  cursor:pointer 
-}
-
-.nav-title { 
-  margin:0; 
-  font-size:18px; 
-  font-weight:700; 
-  color:#334b3a 
-}
-
-.nav-right { 
-  display:flex; 
-  align-items:center; 
-  gap:10px 
-}
-
-.profile { 
-  width:32px; 
-  height:32px; 
-  border-radius:50%; 
-  background:#b4cfbb 
-}
-</style>
+<style src="../styles/AdminNavbar.css"></style>

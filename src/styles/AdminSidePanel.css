@@ -1,0 +1,74 @@
+.admin-shell { 
+  display: grid; 
+  grid-template-columns: 260px 1fr; 
+  height: 100vh; 
+  width: 100% 
+}
+
+.sidebar {
+  background: #A3C4A8; 
+  color: #0f2a1b; 
+  padding: 16px;
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px;
+}
+
+.brand { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  margin-left: 15px;
+}
+
+.logo { 
+  color: #FEFBF6;
+  width: 45px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+}
+
+.brand-name { 
+  font-size: 22px;
+  font-weight: 700; 
+  color: #FEFBF6;
+}
+
+.divider { 
+  border:0; 
+  height:1px; 
+  background:rgba(255,255,255,.4) 
+}
+
+.sidebar-footer {
+  margin-top: auto 
+}
+
+.logout {
+  border: 0; 
+  background-color: transparent;
+  color: #FEFBF6;
+  font-size: 20px;
+  padding: 8px 10px; 
+  border-radius:8px; 
+  cursor: pointer;
+}
+
+.logout:hover { 
+  text-decoration: underline;
+}
+
+.main { 
+  display: flex; 
+  flex-direction: column; 
+  min-width: 0; 
+  overflow: hidden 
+}
+
+.content { 
+  padding: 16px; 
+  overflow: auto; 
+  height: 100% 
+}

@@ -1,0 +1,10 @@
+h3 {
+    color: #A3C4A8;
+}
+
+.tabs{ display:flex; gap:12px; padding:12px 8px 16px; }
+.tab{
+  padding:10px 16px; border-radius:10px; border:1px solid #d6dfd2;
+  background:#e7f0e6; text-decoration:none; color:#2b3b31; font-weight:600;
+}
+.tab.router-link-active{ background:#d5e6d7; }

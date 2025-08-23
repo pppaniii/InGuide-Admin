@@ -16,6 +16,13 @@ function load(): DB {
 
 function save(db:DB){ localStorage.setItem(KEY, JSON.stringify(db)) }
 
+export interface AdminServiceAPI {
+  listBuildings(): Promise<Building[]>
+  createBuilding(name: string): Promise<Building>
+  deleteBuilding(id: string): Promise<void>
+  getBuilding(id: string): Promise<Building | undefined>
+}
+
 export const AdminService = {
   async listBuildings(): Promise<Building[]> {
     return load().buildings
@@ -31,6 +38,9 @@ export const AdminService = {
     const db = load()
     db.buildings = db.buildings.filter(b => b.id !== id)
     save(db)
-  }
+  },
+  async getBuilding(id:string): Promise<Building | undefined>{
+    const db = load()
+    return db.buildings.find(b => b.id === id)
+  },
 }
-
