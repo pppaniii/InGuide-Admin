@@ -2,13 +2,13 @@
   <AdminSidePanel :back="true" @back="$router.push({ name: 'home' })">
     <template #title>{{ building?.name ?? 'Building' }}</template>
     <h3>this is details page</h3>
-    
-    
+    <MapEditor/>
   </AdminSidePanel>
 </template>
 
 <script setup lang="ts">
 import AdminSidePanel from '@/views/AdminSidePanel.vue';
+import MapEditor from '@/components/MapEditor.vue';
 import type { Building } from '@/types';
 
 import { computed, onMounted, ref } from 'vue';
