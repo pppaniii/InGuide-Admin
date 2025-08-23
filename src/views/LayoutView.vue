@@ -2,7 +2,7 @@
   <AdminSidePanel :back="true" @back="$router.push({ name: 'home' })">
     <template #title>{{ building?.name ?? 'Building' }}</template>
     <h3>this is details page</h3>
-    
+
     <nav class="tabs">
       <RouterLink class="tab" :to="{ name: 'building-floorplan', params: { id } }">Floor Plan</RouterLink>
       <RouterLink class="tab" :to="{ name: 'building-pois',      params: { id } }">POIs</RouterLink>
@@ -14,12 +14,13 @@
     <section class="manage">
       <RouterView :building="building" :id="id" />
     </section>
+    <MapEditor/>
   </AdminSidePanel>
 </template>
 
 <script setup lang="ts">
 import AdminSidePanel from '@/views/AdminSidePanel.vue';
-// import type { Building } from '@/types';
+import MapEditor from '@/components/MapEditor.vue';
 
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
