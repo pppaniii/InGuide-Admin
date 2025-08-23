@@ -43,7 +43,7 @@ async function deleteBuilding(id: string): Promise<void> {
 }
 
 function openBuilding(id: string): void {
-  router.push({ name: 'building', params: { id }})
+  router.push({ name: 'building-floorplan', params: { id }})
 }
 </script>
 

@@ -1,6 +1,8 @@
 <template>
     <div class="canvas">
-        Beacons Management: {{ building?.name ?? '...' }}
+        <div class="test">
+            Beacons Management: {{ building?.name ?? '...' }} building
+        </div>
     </div>
 </template>
 
@@ -12,3 +14,5 @@ defineProps<{
     building: Building | null; id: string 
 }>()
 </script>
+
+<style src="../../styles/BeaconsView.css"></style>

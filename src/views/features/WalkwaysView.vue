@@ -1,6 +1,9 @@
 <template>
     <div class="canvas">
-        Walkways Management: {{ building?.name ?? '...' }}
+        <div class="test">
+            Walkways Management: {{ building?.name ?? '...' }} <br>
+            building
+        </div>
     </div>
 </template>
 
@@ -12,3 +15,5 @@ defineProps<{
     building: Building | null; id: string 
 }>()
 </script>
+
+<style src="../../styles/WalkwaysView.css"></style>

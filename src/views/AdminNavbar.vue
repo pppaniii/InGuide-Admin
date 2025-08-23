@@ -7,7 +7,7 @@
         type="button"
         aria-label="Back"
         @click="$emit('back')"
-      >‹</button>
+      ><font-awesome-icon icon="chevron-left" /></button>
 
       <h1 class="nav-title">
         <slot name="title">{{ title }}</slot>

@@ -18,29 +18,28 @@
 }
 
 .back-btn { 
-  border:0; 
-  background:#e6efe8; 
-  border-radius:8px; 
-  padding:4px 8px; 
-  cursor:pointer 
+  border: none;
+  background: transparent; 
+  padding: 8px 8px; 
+  cursor: pointer 
 }
 
 .nav-title { 
-  margin:0; 
-  font-size:18px; 
-  font-weight:700; 
-  color:#334b3a 
+  margin: 0; 
+  font-size: 18px; 
+  font-weight: 700; 
+  color: #2F2F2F 
 }
 
 .nav-right { 
-  display:flex; 
-  align-items:center; 
-  gap:10px 
-}
-
-.profile { 
-  width:32px; 
-  height:32px; 
-  border-radius:50%; 
-  background:#b4cfbb 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  border-radius: 50%;
+  gap: 10px;
+  width: 35px; 
+  height: 35px; 
+  background-color: #A3C4A8;
+  color: #FEFBF6;
+  font-size: 18px;
 }

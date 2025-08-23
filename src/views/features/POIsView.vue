@@ -1,6 +1,9 @@
 <template>
     <div class="canvas">
-        POIs Management: {{ building?.name ?? '...' }}
+        <div class="test">
+            test line <br>
+            POIs Management: {{ building?.name ?? '...' }} building
+        </div>
     </div>
 </template>
 
@@ -12,3 +15,5 @@ defineProps<{
     building: Building | null; id: string 
 }>()
 </script>
+
+<style src="../../styles/POIsView.css"></style>

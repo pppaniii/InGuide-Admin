@@ -1,6 +1,8 @@
 <template>
     <div class="canvas">
-        Floor Plan Management: {{ building?.name ?? '...' }}
+        <div class="text-test">
+            Floor Plan Management: {{ building?.name ?? '...' }} building
+        </div>
     </div>
 </template>
 
@@ -12,3 +14,5 @@ defineProps<{
     building: Building | null; id: string 
 }>()
 </script>
+
+<style src="../../styles/FloorPlanView.css"></style>
