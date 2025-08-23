@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import AdminSidePanel from '@/components/AdminSidePanel.vue';
+import AdminSidePanel from '@/views/AdminSidePanel.vue';
 import type { Building } from '@/types';
 
 import { computed, onMounted, ref } from 'vue';

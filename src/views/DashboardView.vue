@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import AdminLayout from '@/components/AdminSidePanel.vue'
+import AdminLayout from '@/views/AdminSidePanel.vue'
 import BuildingCard from '@/components/BuildingCard.vue'
 import { useBuildings } from '@/stores/buildings' // <-- your store file
 
