@@ -1,0 +1,90 @@
+.login-page {
+  min-height: 100vh;
+  background: #FEFBF6; 
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 95%;
+  display: grid;
+  grid-template-columns: 1fr 550px;
+  gap: 100px;
+  align-items: center;
+}
+
+.hero {
+  height: 700px;
+  border-radius: 12px;
+  background: #D8EAD2;         
+  display: grid;
+  place-items: center;
+}
+
+.form {
+  display: grid;
+  max-width: 420px;
+  gap: 16px;
+}
+
+.title {
+  font-size: 32px;
+  line-height: 1.25;
+  color: #2F2F2F;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #6B7280;
+}
+
+.field {
+  display: grid;
+  gap: 10px;
+}
+
+.label {
+  font-weight: 600;
+  color: #2F2F2F;
+}
+
+input {
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #847C74;
+  background: #fff;
+  color: #2F2F2F;
+  outline: none;
+}
+
+input:focus {
+  border-color: #93b89c;
+  box-shadow: 0 0 0 3px #D8EAD2;
+}
+
+.error {
+  min-height: 30px;
+  color: #B74A4A;
+  visibility: hidden;
+}
+
+.error.show {
+  visibility: visible;
+}
+
+.signin {
+  margin-top: 20px;
+  height: 42px;
+  border-radius: 8px;
+  background-color: #A3C4A8;
+  color: #fff;
+  cursor: pointer;
+}
+
+.signin:hover {
+  background-color: #93b89c;
+}

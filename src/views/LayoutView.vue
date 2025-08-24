@@ -1,5 +1,6 @@
 <template>
-  <AdminSidePanel :back="true" @back="$router.push({ name: 'home' })">
+  <AdminSidePanel 
+    :back="true" @back="$router.push({ name: 'home' })">
     <template #title>{{ building?.name ?? 'Building' }}</template>
     <h3>this is details page</h3>
 

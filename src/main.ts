@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { useAuth } from './stores/auth'
 
 import '@fontsource/noto-sans/400.css'
 import '@fontsource/noto-sans/600.css'
@@ -29,9 +30,13 @@ library.add(
 
 const app = createApp(App)
 
+const pinia = createPinia()
+
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(createPinia())
 app.use(router)
+app.use(pinia)
+useAuth().init()
 
 app.mount('#app')

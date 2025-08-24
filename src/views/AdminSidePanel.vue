@@ -11,7 +11,7 @@
       <hr class="divider" />
       
       <div class="sidebar-footer">
-        <button class="logout" type="button" @click="$emit('logout')">
+        <button class="logout" type="button" @click="handleLogout">
           <font-awesome-icon icon="right-from-bracket"/>
           Log out
         </button>
@@ -37,16 +37,28 @@
 <script setup lang="ts">
 
 import AdminNavbar from './AdminNavbar.vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/stores/auth';
 
 defineProps<{
   title?: string;
   back?: boolean
 }>()
 
-defineEmits<{ 
+const emit = defineEmits<{ 
   (e:'back'): void; 
   (e:'logout'): void 
 }>()
+
+const router = useRouter()
+const auth = useAuth()
+
+async function handleLogout() {
+  await auth.logout()
+  emit('logout')
+  router.push( { name: 'login' })
+}
+
 
 </script>
 
