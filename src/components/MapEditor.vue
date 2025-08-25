@@ -6,18 +6,33 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, toRaw } from 'vue'
-import L, { Map, FeatureGroup, Rectangle } from 'leaflet'
+import L, { Map, FeatureGroup } from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'leaflet-draw/dist/leaflet.draw.css'
 import 'leaflet-draw'
+
+// =========================================
+// Fix Leaflet.Draw bug: expects `type` global
+// =========================================
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).type = true
+
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
 const drawnItems = new FeatureGroup()
-let circleMarker: L.CircleMarker
-let editHandler: L.EditToolbar.Edit | null = null
-let intervalId: any = null
+const drawControl = new L.Control.Draw({
+    edit: { featureGroup: drawnItems },
+    draw: {
+      rectangle: { shapeOptions: { color: '#da4f4f', weight: 2 } },
+      polygon: false,
+      polyline: false,
+      circle: false,
+      marker: false,
+      circlemarker: false
+    }
+  })
 
-// Convert meters to degrees
-const metersToDegrees = 1 / 111320
 
 onMounted(() => {
   // Initialize the map
@@ -47,10 +62,10 @@ onMounted(() => {
     iconSize: [50, 50],
     iconAnchor: [25, 25]
   })
-  L.marker([0, 0], { icon: originPin }).addTo(toRaw(map.value)!)
+  L.marker([0, 0], { icon: originPin }).addTo(toRaw(map.value)! as L.Map)
 
   // Add circle marker
-  circleMarker = L.circleMarker([0, 0], {
+  L.circleMarker([0, 0], {
     radius: 10,
     fillColor: "#278cea",
     color: "#fffbf3",
@@ -62,61 +77,23 @@ onMounted(() => {
 
   // Add drawn items + draw control
   toRaw(map.value)?.addLayer(drawnItems)
+  toRaw(map.value).addControl(drawControl)
 
-  const drawControl = new L.Control.Draw({
-    edit: { featureGroup: drawnItems },
-    draw: {
-      rectangle: { shapeOptions: { color: '#da4f4f', weight: 2 } },
-      polygon: false,
-      polyline: false,
-      circle: false,
-      marker: false,
-      circlemarker: false
-    }
-  })
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toRaw(map.value)?.on(L.Draw.Event.CREATED, (event: any) => {
     const layer = event.layer
     drawnItems.addLayer(layer)
   })
 
-  editHandler = new L.EditToolbar.Edit(toRaw(map.value)!, {
-    featureGroup: drawnItems
-  })
+
 })
 
 // Cleanup
 onBeforeUnmount(() => {
-  clearInterval(intervalId)
   if (map.value) toRaw(map.value).remove()
 })
 
 // ========== METHODS ==========
-function setToCurrentLocation() {
-  toRaw(map.value)?.flyTo(circleMarker.getLatLng(), 18)
-}
-
-function setToOriginPoint() {
-  toRaw(map.value)?.flyTo([0, 0], 18)
-}
-
-function toggleEditMode() {
-  if (editHandler?.enabled) {
-    editHandler.disable()
-  } else {
-    editHandler?.enable()
-  }
-}
-
-function setForbiddenZone() {
-  new L.Draw.Rectangle(toRaw(map.value)!, { shapeOptions: { color: '#da4f4f', weight: 2 } }).enable()
-}
-
-function cancelAction() {
-  if (confirm("Are you sure you want to delete all forbidden zones?")) {
-    drawnItems.clearLayers()
-  }
-}
 
 
 </script>
