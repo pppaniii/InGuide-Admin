@@ -1,46 +1,61 @@
 // mock API
-import type { Building } from '@/types'
+import type { Building, BuildingInfo } from '@/types'
+import axios from 'axios';
 
-const KEY = 'ing_admin_mock_v1'
-type DB = { buildings: Building[] }
+const httpClient = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-function uid(prefix='b'){ return `${prefix}_${Math.random().toString(36).slice(2,9)}` }
-
-function load(): DB {
-  const raw = localStorage.getItem(KEY)
-  if (raw) return JSON.parse(raw) as DB
-  const seed: DB = { buildings: [{ id:'b1', name:'Building1' }] }
-  localStorage.setItem(KEY, JSON.stringify(seed))
-  return seed
+async function listBuildings(): Promise<Building[]> {
+  try {
+    const response = await httpClient.get('/buildings');
+    return response.data;
+  } catch (err) {
+    console.error('Cannot get building from the server...', err);
+    throw err;
+  }
 }
 
-function save(db:DB){ localStorage.setItem(KEY, JSON.stringify(db)) }
-
-export interface AdminServiceAPI {
-  listBuildings(): Promise<Building[]>
-  createBuilding(name: string): Promise<Building>
-  deleteBuilding(id: string): Promise<void>
-  getBuilding(id: string): Promise<Building | undefined>
+async function createBuilding(name: string) {
+    try {
+    const response = await httpClient.post('/buildings', {
+      'name': name
+    });
+    const newBuilding = response.data.building
+    return newBuilding
+  } catch (err) {
+    console.error('There is an error creating a building...', err);
+    throw err;
+  }
 }
 
-export const AdminService = {
-  async listBuildings(): Promise<Building[]> {
-    return load().buildings
-  },
-  async createBuilding(name:string): Promise<Building> {
-    const db = load()
-    const b: Building = { id: uid('b'), name }
-    db.buildings.push(b)
-    save(db)
-    return b
-  },
-  async deleteBuilding(id:string): Promise<void> {
-    const db = load()
-    db.buildings = db.buildings.filter(b => b.id !== id)
-    save(db)
-  },
-  async getBuilding(id:string): Promise<Building | undefined>{
-    const db = load()
-    return db.buildings.find(b => b.id === id)
-  },
+async function deleteBuilding(id: string) {
+  try {
+    const response = await httpClient.delete(`/buildings/${ id }`);
+    return response.data;
+  } catch (err) {
+    console.error('Cannot get building from the server...', err);
+    throw err;
+  }
+}
+
+async function getBuilding(id: string): Promise<BuildingInfo> {
+  try {
+    const response = await httpClient.get(`/buildings/${ id }`);
+    return response.data;
+  } catch (err) {
+    console.error('Cannot get building from the server...', err);
+    throw err;
+  }
+}
+
+export default {
+  listBuildings,
+  createBuilding,
+  deleteBuilding,
+  getBuilding,
 }

@@ -1,12 +1,12 @@
 // mock API
 import { defineStore } from 'pinia'
-import { AdminService } from '@/service/adminService'
-import type { Building } from '@/types'
+import AdminService  from '@/service/adminService'
+import type { Building, BuildingInfo } from '@/types'
 
 export const useBuildings = defineStore('buildings', {
   state: () => ({
     items: [] as Building[],
-    current: null as Building | null,
+    current: null as BuildingInfo | null,
     loading: false,
     error: '' as string | undefined,
   }),
@@ -14,7 +14,7 @@ export const useBuildings = defineStore('buildings', {
     byId: (state) => (id: string) => state.items.find(b => b.id === id),
   },
   actions: {
-    setCurrent(b: Building | null): void {
+    setCurrent(b: BuildingInfo | null): void {
       this.current = b
     },
 
@@ -71,3 +71,5 @@ export const useBuildings = defineStore('buildings', {
     },
   },
 })
+
+
