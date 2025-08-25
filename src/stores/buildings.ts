@@ -1,11 +1,11 @@
 // mock API
 import { defineStore } from 'pinia'
 import AdminService  from '@/service/adminService'
-import type { Building, BuildingInfo } from '@/types'
+import type { BuildingInfo } from '@/types'
 
 export const useBuildings = defineStore('buildings', {
   state: () => ({
-    items: [] as Building[],
+    items: [] as BuildingInfo[],
     current: null as BuildingInfo | null,
     loading: false,
     error: '' as string | undefined,
@@ -30,7 +30,7 @@ export const useBuildings = defineStore('buildings', {
       }
     },
 
-    async fetchById(id: string): Promise<Building | null> {
+    async fetchById(id: string): Promise<BuildingInfo | null> {
       const cached = this.byId(id)
       if (cached) {
         this.current = cached

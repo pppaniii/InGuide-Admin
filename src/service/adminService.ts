@@ -1,5 +1,5 @@
 // mock API
-import type { Building, BuildingInfo } from '@/types'
+import type { BuildingInfo } from '@/types'
 import axios from 'axios';
 
 const httpClient = axios.create({
@@ -10,7 +10,7 @@ const httpClient = axios.create({
   },
 })
 
-async function listBuildings(): Promise<Building[]> {
+async function listBuildings(): Promise<BuildingInfo[]> {
   try {
     const response = await httpClient.get('/buildings');
     return response.data;
