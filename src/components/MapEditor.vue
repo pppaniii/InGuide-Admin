@@ -2,7 +2,6 @@
   <div class="relative w-full h-full map-wrapper">
     <div ref="mapContainer" id="map" class="absolute inset-0"></div>
   </div>
-  <button @click="startConnecting">Connect/Add Nodes</button>
 </template>
 
 <script setup lang="ts">
@@ -33,7 +32,7 @@ onMounted(() => {
     zoomControl: false,
     attributionControl: false,
   })
-
+  toRaw(map.value)?.scrollWheelZoom.disable()
   toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
 

@@ -3,7 +3,9 @@
     <!-- Sidebar -->
     <AdminSidePanel>
       <!-- Child route content goes inside the sidebar -->
-      <RouterView :building="building" :id="id" />
+      <RouterView :building="building" :id="id" v-slot="{ Component }">
+        <component :is="Component" :mapEditorRef="mapEditorRef" />
+      </RouterView>
     </AdminSidePanel>
 
     <!-- Main Content -->
@@ -21,19 +23,23 @@
 
       <!-- Page content -->
       <section class="content">
-        <h3>This is details page</h3>
-
         <!-- Tabs -->
         <nav class="tabs">
-          <RouterLink class="tab" :to="{ name: 'building-floorplan', params: { id } }">Floor Plan</RouterLink>
+          <RouterLink class="tab" :to="{ name: 'building-floorplan', params: { id } }"
+            >Floor Plan</RouterLink
+          >
           <RouterLink class="tab" :to="{ name: 'building-pois', params: { id } }">POIs</RouterLink>
-          <RouterLink class="tab" :to="{ name: 'building-walkway', params: { id } }">Walkway</RouterLink>
-          <RouterLink class="tab" :to="{ name: 'building-beacons', params: { id } }">Beacons</RouterLink>
+          <RouterLink class="tab" :to="{ name: 'building-walkway', params: { id } }"
+            >Walkway</RouterLink
+          >
+          <RouterLink class="tab" :to="{ name: 'building-beacons', params: { id } }"
+            >Beacons</RouterLink
+          >
         </nav>
 
         <!-- Map editor stays in main content -->
         <!-- Map editor ปรับขนาดตาม parent's size เอา div ครอบละปรับขนาดได้เลย-->
-        <MapEditor />
+        <MapEditor ref="mapEditorRef" />
       </section>
     </main>
   </div>
@@ -44,7 +50,7 @@ import AdminSidePanel from '@/components/AdminSidePanel.vue'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
 
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 
@@ -53,6 +59,8 @@ const id = computed(() => String(route.params.id))
 
 const store = useBuildings()
 const building = computed(() => store.current)
+
+const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
@@ -72,8 +80,8 @@ const building = computed(() => store.current)
 }
 
 .content {
-  flex: 1;           /* Fill remaining space */
-  overflow: auto;    /* Scroll if content grows */
+  flex: 1; /* Fill remaining space */
+  overflow: auto; /* Scroll if content grows */
   padding: 1rem;
 }
 
@@ -83,4 +91,3 @@ const building = computed(() => store.current)
   margin-bottom: 1rem;
 }
 </style>
-
