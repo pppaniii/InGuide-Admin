@@ -21,10 +21,8 @@ const selectedNodeId = ref<string | null>(null)
 
 // Graph data: nodeID → connected polylines
 const connections: globalThis.Map<string, Connection[]> = new globalThis.Map()
-
 // Map of nodeID → marker for easy access
 const nodeMarkers: globalThis.Map<string, Marker> = new globalThis.Map()
-
 // Unique node ID generator
 let nextNodeId = 1
 
@@ -38,23 +36,6 @@ onMounted(() => {
 
   toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
-
-  // Origin marker
-  const originPin = L.icon({
-    iconUrl: 'static/images/home.png',
-    iconSize: [50, 50],
-    iconAnchor: [25, 25],
-  })
-  L.marker([0, 0], { icon: originPin }).addTo(toRaw(map.value)!)
-
-  L.circleMarker([0, 0], {
-    radius: 10,
-    fillColor: '#278cea',
-    color: '#fffbf3',
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 1,
-  }).addTo(toRaw(map.value)!)
 
   // Click map
   toRaw(map.value)?.on('click', (event: L.LeafletMouseEvent) => {
@@ -72,8 +53,8 @@ onMounted(() => {
 
       const startMarker = nodeMarkers.get(selectedNodeId.value)!
       const polyline = L.polyline([startMarker.getLatLng(), newNode.getLatLng()], {
-        color: '#0078a8',
-        weight: 3,
+        color: '#f6df4f',
+        weight: 15,
       }).addTo(drawnItems)
 
       // Add polyline to both nodes
@@ -114,7 +95,15 @@ function startConnecting() {
 
 function createNode(latlng: L.LatLng, nodeId?: string) {
   const id = nodeId || `node-${nextNodeId++}`
-  const marker = L.marker(latlng, { draggable: true, title: id }).addTo(drawnItems)
+  const marker = L.marker(latlng, {
+    draggable: true,
+    title: id,
+    icon: L.divIcon({
+      className: 'custom-circle-node',
+      html: '<div></div>', // empty div, style it with CSS
+      iconSize: [20, 20],
+    }),
+  }).addTo(drawnItems)
 
   connections.set(id, [])
   nodeMarkers.set(id, marker)
@@ -133,21 +122,20 @@ function createNode(latlng: L.LatLng, nodeId?: string) {
 }
 
 function highlightNode(marker: L.Marker, highlight: boolean) {
-  marker.setIcon(
-    L.divIcon({
-      className: highlight ? 'selected-node' : '',
-      html: '<div style="width:12px;height:12px;border-radius:50%;background:red;"></div>',
-      iconSize: [12, 12],
-    }),
-  )
+  const icon = L.divIcon({
+    className: highlight ? 'custom-circle-node selected' : 'custom-circle-node',
+    html: '<div></div>',
+    iconSize: [20, 20],
+  })
+  marker.setIcon(icon)
 }
 
 
 // EXPOSE FUNCTIONS TO PARENT COMPONENT
 defineExpose({
+  // This function allow user to create or connect path
   startConnecting,
 })
-
 </script>
 
 <style>
@@ -160,7 +148,16 @@ defineExpose({
   overflow: hidden;
 }
 
-.selected-node div {
-  background: yellow !important;
+.custom-circle-node div {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;   /* makes it circular */
+  background-color: #51854e;
+  border: 2px solid #fffbf3;
 }
+
+.custom-circle-node.selected div {
+  background-color: #e8a34f;
+}
+
 </style>
