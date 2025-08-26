@@ -1,29 +1,31 @@
 <template>
-  <button @click="connectOrAddNode"> BTN </button>
   <div class="relative w-full h-full map-wrapper">
     <div ref="mapContainer" id="map" class="absolute inset-0"></div>
   </div>
+  <button @click="startConnecting">Connect/Add Nodes</button>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, toRaw } from 'vue'
-import L, { Map, FeatureGroup } from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-draw/dist/leaflet.draw.css'
-import 'leaflet-draw'
-import 'leaflet-snap'
+type Connection = { nodeId: string; polyline: Polyline }
 
-// Fix Leaflet.Draw bug: expects `type` global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).type = true
+import { ref, onMounted, onBeforeUnmount, toRaw } from 'vue'
+import L, { Map, FeatureGroup, Polyline, Marker } from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
 const drawnItems = new FeatureGroup()
 
-const editorState = ref<'IDLE' | 'PLACING_NODE' | 'CONNECTING_NODES'>('IDLE')
-const selectedNodeLayer = ref<L.Marker | null>(null)
+const editorState = ref<'IDLE' | 'CONNECTING'>('IDLE')
+const selectedNodeId = ref<string | null>(null)
 
+// Graph data: nodeID → connected polylines
+const connections: globalThis.Map<string, Connection[]> = new globalThis.Map()
+
+// Map of nodeID → marker for easy access
+const nodeMarkers: globalThis.Map<string, Marker> = new globalThis.Map()
+
+// Unique node ID generator
 let nextNodeId = 1
 
 onMounted(() => {
@@ -35,21 +37,15 @@ onMounted(() => {
   })
 
   toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
+  toRaw(map.value)?.addLayer(drawnItems)
 
-  toRaw(map.value)?.touchZoom.disable()
-  toRaw(map.value)?.doubleClickZoom.disable()
-  toRaw(map.value)?.scrollWheelZoom.disable()
-  toRaw(map.value)?.boxZoom.disable()
-  toRaw(map.value)?.keyboard.disable()
-
-  toRaw(map.value)?.createPane('userPane')
-
+  // Origin marker
   const originPin = L.icon({
     iconUrl: 'static/images/home.png',
     iconSize: [50, 50],
     iconAnchor: [25, 25],
   })
-  L.marker([0, 0], { icon: originPin }).addTo(toRaw(map.value)! as L.Map)
+  L.marker([0, 0], { icon: originPin }).addTo(toRaw(map.value)!)
 
   L.circleMarker([0, 0], {
     radius: 10,
@@ -58,44 +54,51 @@ onMounted(() => {
     weight: 2,
     opacity: 1,
     fillOpacity: 1,
-    pane: 'userPane',
-  }).addTo(toRaw(map.value) as L.Map)
+  }).addTo(toRaw(map.value)!)
 
-  toRaw(map.value)?.addLayer(drawnItems)
-
+  // Click map
   toRaw(map.value)?.on('click', (event: L.LeafletMouseEvent) => {
-    if (editorState.value === 'PLACING_NODE') {
-      const newNode = L.marker(event.latlng, { draggable: true }).addTo(drawnItems)
-      // You can add a unique ID to the marker here
-      // newNode.nodeId = nextNodeId++;
+    // If no nodes exist, place first node directly
+    if (nodeMarkers.size === 0) {
+      const firstNode = createNode(event.latlng)
+      console.log(`First node added: ${firstNode.options.title}`)
+      return
+    }
 
-      // Reset state and selection after placing the node
+    // Connecting mode: place new node connected to selected
+    if (editorState.value === 'CONNECTING' && selectedNodeId.value) {
+      const newNodeId = `node-${nextNodeId++}`
+      const newNode = createNode(event.latlng, newNodeId)
+
+      const startMarker = nodeMarkers.get(selectedNodeId.value)!
+      const polyline = L.polyline([startMarker.getLatLng(), newNode.getLatLng()], {
+        color: '#0078a8',
+        weight: 3,
+      }).addTo(drawnItems)
+
+      // Add polyline to both nodes
+      connections.get(selectedNodeId.value)?.push({ nodeId: newNodeId, polyline })
+      connections.set(newNodeId, [{ nodeId: selectedNodeId.value, polyline }])
+
+      highlightNode(startMarker, false)
+      selectedNodeId.value = null
       editorState.value = 'IDLE'
-      selectedNodeLayer.value = null
-    } else if (editorState.value === 'CONNECTING_NODES' && selectedNodeLayer.value) {
-      const newNode = L.marker(event.latlng, { draggable: true }).addTo(drawnItems)
-      // newNode.nodeId = nextNodeId++;
-
-      const polyline = L.polyline([selectedNodeLayer.value.getLatLng(), newNode.getLatLng()]).addTo(drawnItems)
-
-      // Reset state and selection after connecting
-      editorState.value = 'IDLE'
-      selectedNodeLayer.value = null
+      console.log(`Node ${newNodeId} added and connected.`)
     }
   })
 
+  // Click on existing nodes to select
   drawnItems.on('click', (event: any) => {
-    if (event.layer instanceof L.Marker) {
-      if (editorState.value === 'IDLE' || editorState.value === 'CONNECTING_NODES') {
-        if (selectedNodeLayer.value) {
-          // You would need to change the icon back to a default state here
-        }
+    if (!(event.layer instanceof L.Marker)) return
+    if (editorState.value !== 'CONNECTING') return
 
-        selectedNodeLayer.value = event.layer
-        editorState.value = 'CONNECTING_NODES'
+    const marker = event.layer as L.Marker
+    const nodeId = marker.options.title as string
 
-        console.log('Node selected for connection')
-      }
+    if (!selectedNodeId.value) {
+      selectedNodeId.value = nodeId
+      highlightNode(marker, true)
+      console.log(`Node selected: ${nodeId}. Click on map to place a connected node.`)
     }
   })
 })
@@ -104,19 +107,47 @@ onBeforeUnmount(() => {
   if (map.value) toRaw(map.value).remove()
 })
 
-function connectOrAddNode() {
-  if (drawnItems.getLayers().length > 0) {
-    editorState.value = 'CONNECTING_NODES';
-    console.log("State: CONNECTING_NODES. Click a node to select it.");
-  } else {
-    editorState.value = 'PLACING_NODE';
-    console.log("State: PLACING_NODE. No nodes exist. Click anywhere to create the first one.");
-  }
+function startConnecting() {
+  editorState.value = 'CONNECTING'
+  console.log('CONNECTING mode: select a node or click map to place first node.')
 }
 
+function createNode(latlng: L.LatLng, nodeId?: string) {
+  const id = nodeId || `node-${nextNodeId++}`
+  const marker = L.marker(latlng, { draggable: true, title: id }).addTo(drawnItems)
+
+  connections.set(id, [])
+  nodeMarkers.set(id, marker)
+
+  // Dragging updates all connected polylines
+  marker.on('drag', () => {
+    const conns = connections.get(id) || []
+    const newPos = marker.getLatLng()
+    conns.forEach(({ nodeId: otherId, polyline }) => {
+      const otherMarker = nodeMarkers.get(otherId)!
+      polyline.setLatLngs([newPos, otherMarker.getLatLng()])
+    })
+  })
+
+  return marker
+}
+
+function highlightNode(marker: L.Marker, highlight: boolean) {
+  marker.setIcon(
+    L.divIcon({
+      className: highlight ? 'selected-node' : '',
+      html: '<div style="width:12px;height:12px;border-radius:50%;background:red;"></div>',
+      iconSize: [12, 12],
+    }),
+  )
+}
+
+
+// EXPOSE FUNCTIONS TO PARENT COMPONENT
 defineExpose({
-  connectOrAddNode,
+  startConnecting,
 })
+
 </script>
 
 <style>
@@ -124,7 +155,12 @@ defineExpose({
   height: 100%;
   width: 100%;
 }
+
 .map-wrapper {
   overflow: hidden;
+}
+
+.selected-node div {
+  background: yellow !important;
 }
 </style>
