@@ -16,7 +16,7 @@ const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
 const drawnItems = new FeatureGroup()
 
-const editorState = ref<'IDLE' | 'CONNECTING'>('IDLE')
+const editorState = ref<'IDLE' | 'CONNECTING' | 'DELETING'>('IDLE')
 const selectedNodeId = ref<string | null>(null)
 
 // Graph data: nodeID → connected polylines
@@ -69,6 +69,7 @@ onMounted(() => {
   })
 
   // Click on existing nodes to select
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawnItems.on('click', (event: any) => {
     if (!(event.layer instanceof L.Marker)) return
     if (editorState.value !== 'CONNECTING') return
