@@ -9,6 +9,7 @@ import { ref, onMounted, onBeforeUnmount, toRaw } from 'vue'
 import L, { Map, FeatureGroup, Marker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Connection } from '@/types/types'
+import pathServices from '@/services/pathService'
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
@@ -24,9 +25,9 @@ const nodeMarkers: globalThis.Map<string, Marker> = new globalThis.Map()
 // Unique node ID generator
 let nextNodeId = 1
 
-onMounted(() => {
+onMounted(async () => {
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
-    center: [0, 0],
+    center: [18.7996619, 98.950488],
     zoom: 18,
     zoomControl: false,
     attributionControl: false,
@@ -81,6 +82,47 @@ onMounted(() => {
       console.log(`Node selected: ${nodeId}. Click on map to place a connected node.`)
     }
   })
+
+  // load Map
+  const buildingId = 'wcnWozOmfZc2zBXxgm1s' // Replace with a real variable
+  const floorId = 'm0ruV6f71G3MRyPhjqd9' // Your test floor ID
+  try {
+    const loadedGraph = await pathServices.loadPath(buildingId, floorId)
+    if (loadedGraph) {
+      // 1. Create the markers and store them in nodeMarkers map
+      loadedGraph.nodes.forEach((node) => {
+        const marker = createNode(L.latLng(node.coordinates[0], node.coordinates[1]), node.id)
+        nodeMarkers.set(node.id, marker)
+      })
+
+      // 2. Create the polylines and store them in the connections map
+      loadedGraph.adjacencyList.forEach((edges, sourceId) => {
+        edges.forEach((edge) => {
+          const targetId = edge.targetNodeId
+          if (sourceId < targetId) {
+            // only draw once
+            const startMarker = nodeMarkers.get(sourceId)
+            const endMarker = nodeMarkers.get(targetId)
+            if (startMarker && endMarker) {
+              const polyline = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], {
+                color: '#f6df4f', // yellow
+                weight: 15,
+              }).addTo(drawnItems)
+
+              if (!connections.has(sourceId)) connections.set(sourceId, [])
+              connections.get(sourceId)?.push({ nodeId: targetId, polyline })
+
+              if (!connections.has(targetId)) connections.set(targetId, [])
+              connections.get(targetId)?.push({ nodeId: sourceId, polyline })
+            }
+          }
+        })
+      })
+      console.log('Path data loaded successfully!')
+    }
+  } catch (error) {
+    console.error('Failed to load path data:', error)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -128,7 +170,6 @@ function highlightNode(marker: L.Marker, highlight: boolean) {
   marker.setIcon(icon)
 }
 
-
 // EXPOSE FUNCTIONS TO PARENT COMPONENT
 defineExpose({
   // This function allow user to create or connect path
@@ -136,8 +177,6 @@ defineExpose({
 })
 
 // Exporting functions
-
-
 </script>
 
 <style>
@@ -153,7 +192,7 @@ defineExpose({
 .custom-circle-node div {
   width: 20px;
   height: 20px;
-  border-radius: 50%;   /* makes it circular */
+  border-radius: 50%; /* makes it circular */
   background-color: #51854e;
   border: 2px solid #fffbf3;
 }
@@ -161,5 +200,4 @@ defineExpose({
 .custom-circle-node.selected div {
   background-color: #e8a34f;
 }
-
 </style>

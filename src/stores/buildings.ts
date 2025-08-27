@@ -1,6 +1,6 @@
 // mock API
 import { defineStore } from 'pinia'
-import AdminService from '@/service/adminService'
+import AdminService from '@/services/adminService'
 import type { BuildingInfo } from '@/types/types'
 
 export const useBuildings = defineStore('buildings', {
