@@ -16,7 +16,8 @@ const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
 const drawnItems = new FeatureGroup()
 
-const editorState = ref<'IDLE' | 'CONNECTING' | 'DELETING'>('IDLE')
+type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING'
+const editorState = ref<EditorState>('IDLE')
 const selectedNodeId = ref<string | null>(null)
 
 // Graph data: nodeID → connected polylines
@@ -43,12 +44,13 @@ onMounted(async () => {
   // Click map
   toRaw(map.value)?.on('click', (event: L.LeafletMouseEvent) => {
     // If no nodes exist, place first node directly
-    if (nodeMarkers.size === 0) {
+    if (nodeMarkers.size === 0 && editorState.value === 'CONNECTING') {
       const firstNode = createNode(event.latlng)
       console.log(`First node added: ${firstNode.options.title}`)
+      selectedNodeId.value = firstNode.options.title as string
+      highlightNode(firstNode, true)
       return
     }
-
     // Connecting mode: place new node connected to selected
     if (editorState.value === 'CONNECTING' && selectedNodeId.value) {
       const newNodeId = generateId()
@@ -78,43 +80,77 @@ onMounted(async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawnItems.on('click', (event: any) => {
     if (!(event.layer instanceof L.Marker)) return
-    if (editorState.value !== 'CONNECTING') return
+    if (editorState.value == 'CONNECTING') {
+      const marker = event.layer as L.Marker
+      const nodeId = marker.options.title as string
 
-    const marker = event.layer as L.Marker
-    const nodeId = marker.options.title as string
+      if (!selectedNodeId.value) {
+        selectedNodeId.value = nodeId
+        highlightNode(marker, true)
+        console.log(`Node selected: ${nodeId}. Click on map to place a connected node.`)
+      }
+    }
 
-    if (!selectedNodeId.value) {
-      selectedNodeId.value = nodeId
-      highlightNode(marker, true)
-      console.log(`Node selected: ${nodeId}. Click on map to place a connected node.`)
+    // Deleting mode:
+    if (editorState.value === 'DELETING') {
+      const marker = event.layer as L.Marker
+      const nodeId = marker.options.title as string
+      deleteNode(nodeId)
     }
   })
   // load Map
   await loadPath(props.buildingId, props.floorId)
 })
 
-watch(() => props.floorId, async (newFloorId, oldFloorId) => {
-  if (!newFloorId) return
+watch(
+  () => props.floorId,
+  async (newFloorId, oldFloorId) => {
+    if (!newFloorId) return
 
-  pathServices.savePath(props.buildingId, oldFloorId, nodeMarkers, connections)
+    pathServices.savePath(props.buildingId, oldFloorId, nodeMarkers, connections)
 
-  // Clear existing markers & lines
-  drawnItems.clearLayers()
-  nodeMarkers.clear()
-  connections.clear()
+    // Clear existing markers & lines
+    drawnItems.clearLayers()
+    nodeMarkers.clear()
+    connections.clear()
 
-  await loadPath(props.buildingId, newFloorId)
-})
+    await loadPath(props.buildingId, newFloorId)
+  },
+)
 
 onBeforeUnmount(() => {
   if (map.value) toRaw(map.value).remove()
 })
+
 // State control functions
 function startConnecting() {
-  editorState.value = 'CONNECTING'
-  console.log('CONNECTING mode: select a node or click map to place first node.')
+  if (editorState.value !== 'CONNECTING') {
+    editorState.value = 'CONNECTING'
+    console.log('CONNECTING mode: select a node or click map to place first node.')
+  } else {
+    editorState.value = 'IDLE'
+    console.log('IDLE mode')
+  }
 }
-// MAIN FUNCTIONS
+
+function startDeleting() {
+  if (editorState.value !== 'DELETING') {
+    editorState.value = 'DELETING'
+    console.log('DELETING mode: select a node or click map to delete node.')
+  } else {
+    editorState.value = 'IDLE'
+    console.log('IDLE mode')
+  }
+}
+
+// EXPOSE FUNCTIONS TO PARENT COMPONENT
+defineExpose({
+  // This function allow user to create or connect path
+  startConnecting,
+  startDeleting,
+})
+
+// FUNCTIONS
 function createNode(latlng: L.LatLng, nodeId?: string) {
   const id = nodeId || generateId()
   const marker = L.marker(latlng, {
@@ -150,12 +186,6 @@ function highlightNode(marker: L.Marker, highlight: boolean) {
   })
   marker.setIcon(icon)
 }
-
-// EXPOSE FUNCTIONS TO PARENT COMPONENT
-defineExpose({
-  // This function allow user to create or connect path
-  startConnecting,
-})
 
 // Assiting functions
 async function loadPath(buildingId: string, floorId: string) {
@@ -196,6 +226,43 @@ async function loadPath(buildingId: string, floorId: string) {
   } catch (error) {
     console.error('Failed to load path data:', error)
   }
+}
+
+function deleteNode(nodeId: string) {
+  const connectedEdges = connections.get(nodeId)
+
+  // Only delete if node exists AND is an end node (<= 1 connection)
+  if (!connectedEdges || connectedEdges.length > 1) {
+    console.log(`Node ${nodeId} cannot be deleted. It has more than 1 connection.`)
+    return
+  }
+
+  // Remove polyline connecting to its neighbor (if any)
+  if (connectedEdges.length === 1) {
+    const { nodeId: neighborId, polyline } = connectedEdges[0]
+    drawnItems.removeLayer(polyline)
+
+    // Remove this node from neighbor’s connections too
+    const neighborConns = connections.get(neighborId)
+    if (neighborConns) {
+      connections.set(
+        neighborId,
+        neighborConns.filter((c) => c.nodeId !== nodeId),
+      )
+    }
+  }
+
+  // Remove marker itself
+  const marker = nodeMarkers.get(nodeId)
+  if (marker) {
+    drawnItems.removeLayer(marker)
+    nodeMarkers.delete(nodeId)
+  }
+
+  // Remove node from connections map
+  connections.delete(nodeId)
+
+  console.log(`Node ${nodeId} deleted.`)
 }
 </script>
 
