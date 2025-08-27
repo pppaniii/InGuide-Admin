@@ -2,8 +2,6 @@
   <div class="canvas">
     <div class="text-test">Floor Plan Management: {{ building?.name ?? '...' }} building</div>
   </div>
-  <button @click="triggerMapConnect" style="background-color: aliceblue">Connect/Add Path</button>
-  <button @click="triggerMapDelete" style="background-color: aliceblue">Delete Path</button>
   <p>temporary change floor buttons:</p>
   <button @click="emit('update:floorId', '3six135u56G4q1yCBzKX')" style="background-color: aliceblue">Floor 2</button>
   <button @click="emit('update:floorId', 'm0ruV6f71G3MRyPhjqd9')" style="background-color: aliceblue">Floor 4 (Testable)</button>
@@ -23,13 +21,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:floorId'])
 
-function triggerMapConnect() {
-  props.mapEditorRef?.startConnecting()
-}
-
-function triggerMapDelete() {
-  props.mapEditorRef?.startDeleting()
-}
 </script>
 
 <style src="../../styles/FloorPlanView.css"></style>

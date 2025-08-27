@@ -10,6 +10,9 @@ import L, { Map, FeatureGroup } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
 
+type EditorMode = 'PATH' | 'POI' | 'IDLE'
+const editorMode = ref<EditorMode>('IDLE')
+
 type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING'
 const editorState = ref<EditorState>('IDLE')
 const selectedNodeId = ref<string | null>(null)
@@ -33,7 +36,8 @@ const {
   deleteNode,
   loadPath,
   savePath,
-  clearPath
+  clearPath,
+  pathSetNodeVisibility
 } = usePathEditor(map as Ref, drawnItems)
 
 onMounted(async () => {
@@ -92,7 +96,7 @@ onMounted(async () => {
     }
   })
 
-  // Load initial path
+  // Load initial path (onMount)
   await loadPath(props.buildingId, props.floorId)
 })
 
@@ -113,6 +117,25 @@ onBeforeUnmount(() => {
 })
 
 // Exposed methods to parent
+function startPathEditing() {
+  editorMode.value = editorMode.value !== 'PATH' ? 'PATH' : 'IDLE'
+  pathSetNodeVisibility(true) // show nodes only in PATH mode
+  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+}
+
+function startPOIEditing() {
+  editorMode.value = editorMode.value !== 'POI' ? 'POI' : 'IDLE'
+  pathSetNodeVisibility(false) // hide nodes in POI mode, show in PATH mode
+  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+}
+
+function resetEditor() {
+  editorMode.value = 'IDLE'
+  pathSetNodeVisibility(false) 
+  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+}
+
+// PATH FUNCTIONS
 function startConnecting() {
   editorState.value = editorState.value !== 'CONNECTING' ? 'CONNECTING' : 'IDLE'
   console.log(`[Editor State] Mode changed to: ${editorState.value}`)
@@ -123,9 +146,12 @@ function startDeleting() {
 }
 
 defineExpose({
+  startPathEditing,
+  startPOIEditing,
+  resetEditor,
   startConnecting,
   startDeleting,
-  })
+})
 </script>
 
 <style>

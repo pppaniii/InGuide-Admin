@@ -49,10 +49,10 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
 
     const targetMarker = createNode(targetLatLng, targetId)
 
-    const polyline = L.polyline(
-      [sourceMarker.getLatLng(), targetMarker.getLatLng()],
-      { color: '#f6df4f', weight: 15 }
-    ).addTo(drawnItems)
+    const polyline = L.polyline([sourceMarker.getLatLng(), targetMarker.getLatLng()], {
+      color: '#f6df4f',
+      weight: 15,
+    }).addTo(drawnItems)
 
     connections.get(sourceId)?.push({ nodeId: targetId, polyline })
     connections.set(targetId, [{ nodeId: sourceId, polyline }])
@@ -64,11 +64,13 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
    * Highlight or unhighlight a node marker.
    */
   function highlightNode(marker: Marker, highlight: boolean) {
-    marker.setIcon(L.divIcon({
-      className: highlight ? 'custom-circle-node selected' : 'custom-circle-node',
-      html: '<div></div>',
-      iconSize: [20, 20],
-    }))
+    marker.setIcon(
+      L.divIcon({
+        className: highlight ? 'custom-circle-node selected' : 'custom-circle-node',
+        html: '<div></div>',
+        iconSize: [20, 20],
+      }),
+    )
   }
 
   /**
@@ -86,7 +88,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
       if (neighborConns) {
         connections.set(
           neighborId,
-          neighborConns.filter(c => c.nodeId !== nodeId)
+          neighborConns.filter((c) => c.nodeId !== nodeId),
         )
       }
     }
@@ -110,23 +112,23 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
       if (!loadedGraph) return
 
       // Create markers
-      loadedGraph.nodes.forEach(node => {
+      loadedGraph.nodes.forEach((node) => {
         const marker = createNode(L.latLng(node.coordinates[0], node.coordinates[1]), node.id)
         nodeMarkers.set(node.id, marker)
       })
 
       // Create polylines
       loadedGraph.adjacencyList.forEach((edges, sourceId) => {
-        edges.forEach(edge => {
+        edges.forEach((edge) => {
           const targetId = edge.targetNodeId
           if (sourceId < targetId) {
             const startMarker = nodeMarkers.get(sourceId)
             const endMarker = nodeMarkers.get(targetId)
             if (startMarker && endMarker) {
-              const polyline = L.polyline(
-                [startMarker.getLatLng(), endMarker.getLatLng()],
-                { color: '#f6df4f', weight: 15 }
-              ).addTo(drawnItems)
+              const polyline = L.polyline([startMarker.getLatLng(), endMarker.getLatLng()], {
+                color: '#f6df4f',
+                weight: 15,
+              }).addTo(drawnItems)
 
               if (!connections.has(sourceId)) connections.set(sourceId, [])
               connections.get(sourceId)?.push({ nodeId: targetId, polyline })
@@ -158,6 +160,13 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
     connections.clear()
   }
 
+  function pathSetNodeVisibility(visible: boolean) {
+    nodeMarkers.forEach((marker) => {
+      const el = marker.getElement()
+      if (el) el.style.display = visible ? '' : 'none'
+    })
+  }
+
   return {
     nodeMarkers,
     connections,
@@ -167,6 +176,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
     deleteNode,
     loadPath,
     savePath,
-    clearPath
+    clearPath,
+    pathSetNodeVisibility,
   }
 }

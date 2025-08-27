@@ -47,7 +47,7 @@ import AdminSidePanel from '@/components/AdminSidePanel.vue'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 
@@ -61,10 +61,42 @@ const floorId = ref<string>('3six135u56G4q1yCBzKX')
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 
+const editorMode = computed<'PATH' | 'POI' | 'IDLE'>(() => {
+  switch (route.name) {
+    case 'building-walkway':
+      return 'PATH'
+    case 'building-pois':
+      return 'POI'
+    default:
+      return 'IDLE'
+  }
+})
+
 // Handler function to update floorId
 function handleFloorIdUpdate(newFloorId: string) {
   floorId.value = newFloorId
 }
+
+watch(
+  editorMode,
+  (newMode) => {
+    if (!mapEditorRef.value) return
+
+    if (newMode === 'PATH') {
+      mapEditorRef.value.startPathEditing?.()   // show nodes
+    } else if (newMode === 'POI') {
+      mapEditorRef.value.startPOIEditing?.()    // hide nodes, allow POI editing
+    } else {
+      // optional: reset all modes
+      mapEditorRef.value.resetEditor?.()
+
+    }
+
+    console.log(`[Editor Mode] Switched to ${newMode}`)
+  },
+  { immediate: true }
+)
+
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
