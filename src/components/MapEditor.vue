@@ -5,11 +5,10 @@
 </template>
 
 <script setup lang="ts">
-type Connection = { nodeId: string; polyline: Polyline }
-
 import { ref, onMounted, onBeforeUnmount, toRaw } from 'vue'
-import L, { Map, FeatureGroup, Polyline, Marker } from 'leaflet'
+import L, { Map, FeatureGroup, Marker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import type { Connection } from '@/types/types'
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
@@ -87,12 +86,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (map.value) toRaw(map.value).remove()
 })
-
+// State control functions
 function startConnecting() {
   editorState.value = 'CONNECTING'
   console.log('CONNECTING mode: select a node or click map to place first node.')
 }
-
+// MAIN FUNCTIONS
 function createNode(latlng: L.LatLng, nodeId?: string) {
   const id = nodeId || `node-${nextNodeId++}`
   const marker = L.marker(latlng, {
@@ -107,7 +106,6 @@ function createNode(latlng: L.LatLng, nodeId?: string) {
 
   connections.set(id, [])
   nodeMarkers.set(id, marker)
-
   // Dragging updates all connected polylines
   marker.on('drag', () => {
     const conns = connections.get(id) || []
@@ -136,6 +134,10 @@ defineExpose({
   // This function allow user to create or connect path
   startConnecting,
 })
+
+// Exporting functions
+
+
 </script>
 
 <style>

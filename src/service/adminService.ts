@@ -1,6 +1,6 @@
 // mock API
-import type { BuildingInfo } from '@/types'
-import axios from 'axios';
+import type { BuildingInfo } from '@/types/types'
+import axios from 'axios'
 
 const httpClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -12,44 +12,44 @@ const httpClient = axios.create({
 
 async function listBuildings(): Promise<BuildingInfo[]> {
   try {
-    const response = await httpClient.get('/buildings');
-    return response.data;
+    const response = await httpClient.get('/buildings')
+    return response.data
   } catch (err) {
-    console.error('Cannot get building from the server...', err);
-    throw err;
+    console.error('Cannot get building from the server...', err)
+    throw err
   }
 }
 
 async function createBuilding(name: string) {
-    try {
+  try {
     const response = await httpClient.post('/buildings', {
-      'name': name
-    });
+      name: name,
+    })
     const newBuilding = response.data.building
     return newBuilding
   } catch (err) {
-    console.error('There is an error creating a building...', err);
-    throw err;
+    console.error('There is an error creating a building...', err)
+    throw err
   }
 }
 
 async function deleteBuilding(id: string) {
   try {
-    const response = await httpClient.delete(`/buildings/${ id }`);
-    return response.data;
+    const response = await httpClient.delete(`/buildings/${id}`)
+    return response.data
   } catch (err) {
-    console.error('Cannot get building from the server...', err);
-    throw err;
+    console.error('Cannot get building from the server...', err)
+    throw err
   }
 }
 
 async function getBuilding(id: string): Promise<BuildingInfo> {
   try {
-    const response = await httpClient.get(`/buildings/${ id }`);
-    return response.data;
+    const response = await httpClient.get(`/buildings/${id}`)
+    return response.data
   } catch (err) {
-    console.error('Cannot get building from the server...', err);
-    throw err;
+    console.error('Cannot get building from the server...', err)
+    throw err
   }
 }
 

@@ -1,7 +1,7 @@
 // mock API
 import { defineStore } from 'pinia'
-import AdminService  from '@/service/adminService'
-import type { BuildingInfo } from '@/types'
+import AdminService from '@/service/adminService'
+import type { BuildingInfo } from '@/types/types'
 
 export const useBuildings = defineStore('buildings', {
   state: () => ({
@@ -11,7 +11,7 @@ export const useBuildings = defineStore('buildings', {
     error: '' as string | undefined,
   }),
   getters: {
-    byId: (state) => (id: string) => state.items.find(b => b.id === id),
+    byId: (state) => (id: string) => state.items.find((b) => b.id === id),
   },
   actions: {
     setCurrent(b: BuildingInfo | null): void {
@@ -63,7 +63,7 @@ export const useBuildings = defineStore('buildings', {
     async remove(id: string): Promise<void> {
       try {
         await AdminService.deleteBuilding(id)
-        this.items = this.items.filter(b => b.id !== id)
+        this.items = this.items.filter((b) => b.id !== id)
         if (this.current?.id === id) this.current = null
       } catch (e: unknown) {
         this.error = e instanceof Error ? e.message : String(e)
@@ -71,5 +71,3 @@ export const useBuildings = defineStore('buildings', {
     },
   },
 })
-
-

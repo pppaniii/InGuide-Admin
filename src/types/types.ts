@@ -14,3 +14,11 @@ export interface Floor {
   floor: number;
   floor_plan_url: string;
 }
+
+// conn
+import { Polyline } from "leaflet";
+
+export interface Connection {
+  nodeId: string;
+  polyline: Polyline;
+}
