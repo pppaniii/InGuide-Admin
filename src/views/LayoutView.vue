@@ -1,16 +1,17 @@
 <template>
   <div class="admin-shell">
-    <!-- Sidebar -->
     <AdminSidePanel>
-      <!-- Child route content goes inside the sidebar -->
-      <RouterView :building="building" :id="id" v-slot="{ Component }">
-        <component :is="Component" :mapEditorRef="mapEditorRef" />
+      <RouterView v-slot="{ Component }">
+        <component
+          :is="Component"
+          :mapEditorRef="mapEditorRef"
+          :floorId="floorId"
+          @update:floorId="handleFloorIdUpdate"
+        />
       </RouterView>
     </AdminSidePanel>
 
-    <!-- Main Content -->
     <main class="main">
-      <!-- Navbar -->
       <AdminNavbar
         :title="building?.name ?? 'Building'"
         :back="true"
@@ -21,9 +22,7 @@
         <template #avatar><slot name="avatar" /></template>
       </AdminNavbar>
 
-      <!-- Page content -->
       <section class="content">
-        <!-- Tabs -->
         <nav class="tabs">
           <RouterLink class="tab" :to="{ name: 'building-floorplan', params: { id } }"
             >Floor Plan</RouterLink
@@ -37,9 +36,7 @@
           >
         </nav>
 
-        <!-- Map editor stays in main content -->
-        <!-- Map editor ปรับขนาดตาม parent's size เอา div ครอบละปรับขนาดได้เลย-->
-        <MapEditor ref="mapEditorRef" />
+        <MapEditor ref="mapEditorRef" :buildingId="building?.id || ''" :floorId="floorId" />
       </section>
     </main>
   </div>
@@ -60,7 +57,14 @@ const id = computed(() => String(route.params.id))
 const store = useBuildings()
 const building = computed(() => store.current)
 
+const floorId = ref<string>('3six135u56G4q1yCBzKX')
+
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
+
+// Handler function to update floorId
+function handleFloorIdUpdate(newFloorId: string) {
+  floorId.value = newFloorId
+}
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
@@ -68,7 +72,7 @@ const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 <style scoped>
 .admin-shell {
   display: grid;
-  grid-template-columns: 260px 1fr; /* Sidebar + main content */
+  grid-template-columns: 260px 1fr;
   width: 100%;
   height: 100vh;
 }
@@ -80,8 +84,8 @@ const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 }
 
 .content {
-  flex: 1; /* Fill remaining space */
-  overflow: auto; /* Scroll if content grows */
+  flex: 1;
+  overflow: auto;
   padding: 1rem;
 }
 
