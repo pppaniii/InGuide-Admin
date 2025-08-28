@@ -6,6 +6,8 @@ export interface Building {
 export interface BuildingInfo {
   id: string;
   name: string;
+  NE_bound: [number, number];
+  SW_bound: [number, number];
   floors: Floor[];
 }
 

@@ -37,7 +37,7 @@
           >
         </nav>
 
-        <MapEditor ref="mapEditorRef" :buildingId="building?.id || ''" :floorId="floorId" />
+        <MapEditor ref="mapEditorRef" :building="building" :floorId="floorId" />
       </section>
     </main>
   </div>

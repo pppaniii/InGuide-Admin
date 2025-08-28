@@ -7,6 +7,7 @@
     <button
       @click="emit('update:floorId', floor.id)"
       style="background-color: aliceblue"
+      class="w-full"
     >
       {{ floor.floor }}
     </button>

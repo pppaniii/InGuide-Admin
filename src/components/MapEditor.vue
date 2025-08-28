@@ -9,6 +9,7 @@ import { ref, onMounted, onBeforeUnmount, toRaw, watch, type Ref } from 'vue'
 import L, { Map, FeatureGroup } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
+import type { BuildingInfo } from '@/types/types'
 
 type EditorMode = 'PATH' | 'POI' | 'IDLE'
 const editorMode = ref<EditorMode>('IDLE')
@@ -22,7 +23,7 @@ const map = ref<Map | null>(null)
 const drawnItems = new FeatureGroup()
 
 const props = defineProps<{
-  buildingId: string
+  building: BuildingInfo | null
   floorId: string
 }>()
 
@@ -43,7 +44,7 @@ const {
 onMounted(async () => {
   // Init Map
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
-    center: [18.7996619, 98.950488],
+    center: props.building?.NE_bound,
     zoom: 18,
     zoomControl: false,
     attributionControl: false
@@ -96,8 +97,9 @@ onMounted(async () => {
     }
   })
 
+  console.log(props.floorId)
   // Load initial path (onMount)
-  await loadPath(props.buildingId, props.floorId)
+  await loadPath(props.building?.id as string, props.floorId)
 })
 
 // Watch for floor change
@@ -106,9 +108,9 @@ watch(
   async (newFloorId, oldFloorId) => {
     if (!newFloorId) return
 
-    savePath(props.buildingId, oldFloorId)
+    savePath(props.building?.id as string, oldFloorId)
     clearPath()
-    await loadPath(props.buildingId, newFloorId)
+    await loadPath(props.building?.id as string, newFloorId)
   }
 )
 
@@ -131,7 +133,7 @@ function startPOIEditing() {
 
 function resetEditor() {
   editorMode.value = 'IDLE'
-  pathSetNodeVisibility(false) 
+  pathSetNodeVisibility(false)
   console.log(`[Editor Mode] Switched to ${editorMode.value}`)
 }
 
