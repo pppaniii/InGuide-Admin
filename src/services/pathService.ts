@@ -54,7 +54,7 @@ async function savePath(
     const newBuilding = response.data.building
     return newBuilding
   } catch (err) {
-    console.error('There is an error creating a building...', err)
+    console.error('There is an error saving a path...', err)
     throw err
   }
 }

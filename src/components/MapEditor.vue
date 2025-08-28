@@ -20,12 +20,15 @@ const selectedNodeId = ref<string | null>(null)
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
+const floorOverlay = ref<L.ImageOverlay | null>(null)
 const drawnItems = new FeatureGroup()
 
 const props = defineProps<{
   building: BuildingInfo | null
-  floorId: string
+  floorId: string | null
 }>()
+
+const buildingBound = ref<[number, number][]>([])
 
 // Import Path Editor composable
 const {
@@ -38,7 +41,7 @@ const {
   loadPath,
   savePath,
   clearPath,
-  pathSetNodeVisibility
+  pathSetNodeVisibility,
 } = usePathEditor(map as Ref, drawnItems)
 
 onMounted(async () => {
@@ -47,13 +50,15 @@ onMounted(async () => {
     center: props.building?.NE_bound,
     zoom: 18,
     zoomControl: false,
-    attributionControl: false
+    attributionControl: false,
   })
   toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
+  buildingBound.value = [props.building?.SW_bound, props.building?.NE_bound] as [number, number][]
+  console.log(buildingBound.value)
 
   // Click map to create/connect nodes
-  map.value?.on('click', (event: L.LeafletMouseEvent) => {
+  toRaw(map.value)?.on('click', (event: L.LeafletMouseEvent) => {
     if (editorState.value === 'CONNECTING') {
       // First node
       if (nodeMarkers.size === 0) {
@@ -99,7 +104,16 @@ onMounted(async () => {
 
   console.log(props.floorId)
   // Load initial path (onMount)
-  await loadPath(props.building?.id as string, props.floorId)
+  const floor = props.building?.floors.find((f) => f.id === props.floorId)
+  if (floor) {
+    floorOverlay.value = L.imageOverlay(floor.floor_plan_url, buildingBound.value).addTo(
+      toRaw(map.value) as L.Map,
+    )
+  }
+  if (props.floorId !== null) {
+    await loadPath(props.building?.id as string, props.floorId)
+    pathSetNodeVisibility(false)
+  }
 })
 
 // Watch for floor change
@@ -108,14 +122,37 @@ watch(
   async (newFloorId, oldFloorId) => {
     if (!newFloorId) return
 
-    savePath(props.building?.id as string, oldFloorId)
-    clearPath()
+    // Save old floor path
+
+    if (oldFloorId != null) {
+      savePath(props.building?.id as string, oldFloorId as string)
+      clearPath()
+    }
+
+    // 🔄 Remove old overlay if exists
+    if (floorOverlay.value) {
+      toRaw(map.value)?.removeLayer(toRaw(floorOverlay.value) as L.ImageOverlay)
+      floorOverlay.value = null
+    }
+
+    // 🖼️ Add new overlay
+    const newFloor = props.building?.floors.find((f) => f.id === newFloorId)
+    if (newFloor) {
+      floorOverlay.value = L.imageOverlay(newFloor.floor_plan_url, buildingBound.value).addTo(
+        toRaw(map.value)! as L.Map,
+      )
+    }
+
+    // Force map to refresh layout
+    toRaw(map.value)?.invalidateSize()
+
+    // Load new floor path
     await loadPath(props.building?.id as string, newFloorId)
-  }
+  },
 )
 
 onBeforeUnmount(() => {
-  map.value?.remove()
+  toRaw(map.value)?.remove()
 })
 
 // Exposed methods to parent

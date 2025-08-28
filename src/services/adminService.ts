@@ -38,7 +38,7 @@ async function deleteBuilding(id: string) {
     const response = await httpClient.delete(`/buildings/${id}`)
     return response.data
   } catch (err) {
-    console.error('Cannot get building from the server...', err)
+    console.error('There is an error deleting a building...', err)
     throw err
   }
 }

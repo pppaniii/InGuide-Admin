@@ -48,7 +48,7 @@ import AdminSidePanel from '@/components/AdminSidePanel.vue'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
 
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 
@@ -58,7 +58,7 @@ const id = computed(() => String(route.params.id))
 const store = useBuildings()
 const building = computed(() => store.current)
 
-const floorId = ref<string>('3six135u56G4q1yCBzKX')
+const floorId = ref<string | null>(null)
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 
@@ -77,6 +77,10 @@ const editorMode = computed<'PATH' | 'POI' | 'IDLE'>(() => {
 function handleFloorIdUpdate(newFloorId: string) {
   floorId.value = newFloorId
 }
+
+onMounted(() => {
+  floorId.value = building.value?.floors[0].id as string
+})
 
 watch(
   editorMode,
