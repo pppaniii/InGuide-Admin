@@ -3,17 +3,23 @@
     <div class="text-test">Floor Plan Management: {{ building?.name ?? '...' }} building</div>
   </div>
   <p>temporary change floor buttons:</p>
-  <button @click="emit('update:floorId', '3six135u56G4q1yCBzKX')" style="background-color: aliceblue">Floor 2</button>
-  <button @click="emit('update:floorId', 'm0ruV6f71G3MRyPhjqd9')" style="background-color: aliceblue">Floor 4 (Testable)</button>
+  <div v-for="floor in props.building.floors" :key="floor.id">
+    <button
+      @click="emit('update:floorId', floor.id)"
+      style="background-color: aliceblue"
+    >
+      {{ floor.floor }}
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { Building } from '@/types/types'
+import type { BuildingInfo } from '@/types/types'
 import MapEditor from '@/components/MapEditor.vue'
 import type { Ref } from 'vue';
 
 const props = defineProps<{
-  building: Building | null
+  building: BuildingInfo
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
   floorId: Ref<string>

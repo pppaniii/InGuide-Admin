@@ -6,6 +6,7 @@
           :is="Component"
           :mapEditorRef="mapEditorRef"
           :floorId="floorId"
+          :building="building"
           @update:floorId="handleFloorIdUpdate"
         />
       </RouterView>
