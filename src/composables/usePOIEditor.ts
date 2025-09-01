@@ -13,38 +13,61 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useBuildings } from '@/stores/buildings'
 
-const buildingInfo = useBuildings()
-
 export function usePoiEditor(map: Ref<Map | null>, poiLayer: LayerGroup) {
+  const buildingStore = useBuildings()
+
+  // Instead of using the store inside helpers, accept IDs explicitly in API
   function createPOI(
+    buildingId: string,
+    floorId: string,
     name: string,
     latlng: [number, number],
     poiType?: string,
     poiId?: string,
-    floorId?: string,
   ): Marker {
     console.log('POI CREATED!')
     const id = poiId || generateId()
     const type = poiType || '-'
-    const poi = createPOIMarker(latlng, type, id, name, floorId)
-    poi.addTo(toRaw(poiLayer))
-    return poi
+    const poiMarker = createPOIMarker(latlng, type, id, name, buildingId, floorId)
+    poiMarker.addTo(toRaw(poiLayer))
+
+    const floorNum = buildingStore.floorById(buildingId, floorId)?.floor as number
+    // SAVE POI
+    const newPOI: POI = {
+      id: id,
+      name: name,
+      location: latlng,
+      floor: floorNum,
+      type: type,
+      images: [],
+      detail: '-',
+    }
+    addOrUpdatePOI(buildingId, floorId, newPOI)
+    return poiMarker
   }
 
   async function loadPOIs(buildingId: string, floorId: string) {
     try {
       const loadedPOIs = await poiService.getPOIs(buildingId, floorId)
       loadedPOIs.forEach((p) => {
-        const poi = createPOI(p.name, p.location, p.type, p.id)
-        poi.addTo(toRaw(poiLayer))
+        createPOI(buildingId, floorId, p.name, p.location, p.type, p.id)
       })
     } catch (error) {
       console.log('Failed to load POIs:', error)
     }
   }
 
-  function savePOIs(buildingId: string, floorId: string, pois: POI[]) {
-    poiService.savePOIs(buildingId, floorId, pois)
+  function addOrUpdatePOI(buildingId: string, floorId: string, poi: POI) {
+    poiService.addOrUpdatePOI(buildingId, floorId, poi)
+  }
+
+  function updatePOIPosition(
+    buildingId: string,
+    floorId: string,
+    poiId: string,
+    newLatLng: [number, number],
+  ) {
+    poiService.updatePOI(buildingId, floorId, poiId, newLatLng)
   }
 
   function clearPOIs() {
@@ -54,7 +77,8 @@ export function usePoiEditor(map: Ref<Map | null>, poiLayer: LayerGroup) {
   return {
     createPOI,
     loadPOIs,
-    savePOIs,
+    addOrUpdatePOI,
+    updatePOIPosition,
     clearPOIs,
   }
 }
@@ -65,11 +89,13 @@ const poiIconMap: Record<string, IconDefinition> = {
   'Lecture Room': faChalkboardTeacher,
   'Computer Lab': faDesktop,
 }
+
 const poiColorMap: Record<string, string> = {
   Restroom: '#FF0000',
   'Lecture Room': '#00FF00',
   'Computer Lab': '#0000FF',
 }
+
 function createSvgIcon(icon: IconDefinition, size = 18, color = 'white') {
   const [width, height, , , svgPath] = icon.icon
   return `
@@ -78,12 +104,14 @@ function createSvgIcon(icon: IconDefinition, size = 18, color = 'white') {
     </svg>
   `
 }
+
 function createPOIMarker(
   latlng: [number, number],
   poiType: string,
   id: string,
-  name?: string,
-  floorId?: string,
+  name: string,
+  buildingId: string,
+  floorId: string,
 ) {
   const iconDef = poiIconMap[poiType] || faCircle
   const svgIcon = createSvgIcon(iconDef)
@@ -120,24 +148,24 @@ function createPOIMarker(
         </div>
       </div>
     `,
-    iconSize: [36, 50], // increase height to fit label
-    iconAnchor: [18, 50], // anchor at bottom center of icon + label
+    iconSize: [36, 50],
+    iconAnchor: [18, 50],
   })
 
   const poi = L.marker(latlng, {
-    icon: icon,
+    icon,
     title: id,
     draggable: true,
   })
 
+  // 👇 no store dependency — just use params
   poi.on('dragend', async (e) => {
     const newLatLng = (e.target as L.Marker).getLatLng()
     try {
-      const buildingId = buildingInfo.current?.id as string
-      const poiFloorId = floorId || buildingInfo.current?.floors[0].id as string
-      poiService.updatePOI(buildingId, poiFloorId, id, [newLatLng.lat, newLatLng.lng])
+      await poiService.updatePOI(buildingId, floorId, id, [newLatLng.lat, newLatLng.lng])
+      console.log(`POI ${id} updated`)
     } catch (error) {
-      console.log("there is an error patching new location", error)
+      console.log('error patching new location', error)
     }
   })
 

@@ -15,7 +15,7 @@ import { usePoiEditor } from '@/composables/usePOIEditor'
 type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON' | 'FLOOR'
 const editorMode = ref<EditorMode>('IDLE')
 
-type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING'
+type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING' | 'CREATING'
 const editorState = ref<EditorState>('IDLE')
 const selectedNodeId = ref<string | null>(null)
 
@@ -45,7 +45,13 @@ const {
   clearPath,
   pathSetNodeVisibility,
 } = usePathEditor(map as Ref, drawnItems)
-const { createPOI, loadPOIs, savePOIs, clearPOIs } = usePoiEditor(map as Ref, poiLayer)
+const {
+  createPOI,
+  loadPOIs,
+  addOrUpdatePOI,
+  updatePOIPosition,
+  clearPOIs
+} = usePoiEditor(map as Ref, poiLayer)
 
 onMounted(async () => {
   // Init Map
@@ -62,25 +68,38 @@ onMounted(async () => {
   console.log(buildingBound.value)
 
   // Click map to create/connect nodes
-  toRaw(map.value)?.on('click', (event: L.LeafletMouseEvent) => {
-    if (editorState.value === 'CONNECTING') {
-      // First node
-      if (nodeMarkers.size === 0) {
-        const firstNode = createNode(event.latlng)
-        selectedNodeId.value = firstNode.options.title as string
-        highlightNode(firstNode, true)
-        return
+  toRaw(map.value)?.on('click', async (event: L.LeafletMouseEvent) => {
+    if (editorMode.value === 'PATH') {
+      if (editorState.value === 'CONNECTING') {
+        // First node
+        if (nodeMarkers.size === 0) {
+          const firstNode = createNode(event.latlng)
+          selectedNodeId.value = firstNode.options.title as string
+          highlightNode(firstNode, true)
+          return
+        }
+
+        // Connect to existing selected node
+        if (selectedNodeId.value) {
+          const newNodeId = connectNodes(selectedNodeId.value, event.latlng)
+          highlightNode(nodeMarkers.get(selectedNodeId.value)!, false)
+          selectedNodeId.value = null
+          editorState.value = 'IDLE'
+
+          console.log(`Node ${newNodeId} created and connected.`)
+          console.log(connections)
+        }
       }
+    }
 
-      // Connect to existing selected node
-      if (selectedNodeId.value) {
-        const newNodeId = connectNodes(selectedNodeId.value, event.latlng)
-        highlightNode(nodeMarkers.get(selectedNodeId.value)!, false)
-        selectedNodeId.value = null
-        editorState.value = 'IDLE'
-
-        console.log(`Node ${newNodeId} created and connected.`)
-        console.log(connections)
+    if (editorMode.value === 'POI') {
+      if (editorState.value === 'CREATING'){
+        const latLng = event.latlng
+        const newLatLng = [latLng.lat, latLng.lng] as [number, number]
+        const buildingId = props.building?.id as string
+        const floorId = props.floorId as string
+        const name = await prompt("Enter New Point of Interest Name 👇", "new POI") as string
+        createPOI(buildingId,floorId , name, newLatLng)
       }
     }
   })
@@ -146,7 +165,7 @@ watch(
     }
 
     if (editorMode.value !== 'BEACON' || 'PATH') {
-      console.log("yepp")
+      console.log('yepp')
       await loadPOIs(props.building?.id as string, newFloorId)
     }
   },
@@ -184,6 +203,10 @@ function startDeleting() {
   editorState.value = editorState.value !== 'DELETING' ? 'DELETING' : 'IDLE'
   console.log(`[Editor State] Mode changed to: ${editorState.value}`)
 }
+function startCreatingPOI() {
+  editorState.value = editorState.value !== 'CREATING' ? 'CREATING' : 'IDLE'
+  console.log(`[Editor State] Mode changed to: ${editorState.value}`)
+}
 
 defineExpose({
   startPathEditing,
@@ -191,6 +214,10 @@ defineExpose({
   resetEditor,
   startConnecting,
   startDeleting,
+  startCreatingPOI,
+  // POIs
+  addOrUpdatePOI,
+  updatePOIPosition,
 })
 </script>
 

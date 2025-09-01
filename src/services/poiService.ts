@@ -47,19 +47,16 @@ async function getPOIById(buildingId: string, poiId: string) {
  * Save a list of POIs on a specific floor and building.
  * @param buildingId object id of the building.
  * @param poiId specify target POI id.
- * @param POIs list of new POIs.
+ * @param POI new POIs.
  * @returns A Promise that resolves to the selected POI of the building.
  */
-async function savePOIs(buildingId: string, floorId: string, POIs: POI[]){
+async function addOrUpdatePOI(buildingId: string, floorId: string, poi: POI) {
   try {
-    const response = await httpClient.post(`/POIs/POI_info/${buildingId}/${floorId}`, {
-      "pois": POIs
-    });
-
-    return response.data;
+    const response = await httpClient.post(`/POIs/${buildingId}/${floorId}`, poi)
+    return response.data
   } catch (err) {
-    console.error('Error saving POI...', err);
-    throw err;
+    console.error('Error saving POI...', err)
+    throw err
   }
 }
 
@@ -85,9 +82,20 @@ async function updatePOI(buildingId: string, floorId: string, poiId: string, new
   }
 }
 
+async function deletePOI(buildingId: string, floorId: string, poiId: string) {
+  try {
+    const response = await httpClient.delete(`/POIs/${buildingId}/${floorId}/${poiId}`)
+    return response.data
+  } catch (err) {
+    console.error('Error deleting POI...', err)
+    throw err
+  }
+}
+
 export default {
   getPOIs,
   getPOIById,
-  savePOIs,
+  addOrUpdatePOI,
   updatePOI,
+  deletePOI,
 }

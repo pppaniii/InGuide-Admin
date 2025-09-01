@@ -12,6 +12,11 @@ export const useBuildings = defineStore('buildings', {
   }),
   getters: {
     byId: (state) => (id: string) => state.items.find((b) => b.id === id),
+
+    floorById: (state) => (buildingId: string, floorId: string) => {
+      const building = state.items.find((b) => b.id === buildingId)
+      return building?.floors.find((f) => f.id === floorId) ?? null
+    },
   },
   actions: {
     setCurrent(b: BuildingInfo | null): void {
