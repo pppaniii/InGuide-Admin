@@ -6,12 +6,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, toRaw, watch, type Ref } from 'vue'
-import L, { Map, FeatureGroup } from 'leaflet'
+import L, { Map, FeatureGroup, LayerGroup } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
 import type { BuildingInfo } from '@/types/types'
+import { usePoiEditor } from '@/composables/usePOIEditor'
 
-type EditorMode = 'PATH' | 'POI' | 'IDLE'
+type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON' | 'FLOOR'
 const editorMode = ref<EditorMode>('IDLE')
 
 type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING'
@@ -22,6 +23,7 @@ const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
 const floorOverlay = ref<L.ImageOverlay | null>(null)
 const drawnItems = new FeatureGroup()
+const poiLayer = new LayerGroup()
 
 const props = defineProps<{
   building: BuildingInfo | null
@@ -43,6 +45,7 @@ const {
   clearPath,
   pathSetNodeVisibility,
 } = usePathEditor(map as Ref, drawnItems)
+const { createPOI, loadPOIs, savePOIs, clearPOIs } = usePoiEditor(map as Ref, poiLayer)
 
 onMounted(async () => {
   // Init Map
@@ -54,6 +57,7 @@ onMounted(async () => {
   })
   toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
+  toRaw(map.value)?.addLayer(poiLayer)
   buildingBound.value = [props.building?.SW_bound, props.building?.NE_bound] as [number, number][]
   console.log(buildingBound.value)
 
@@ -101,19 +105,6 @@ onMounted(async () => {
       console.log(success ? `Node ${nodeId} deleted.` : `Node ${nodeId} cannot be deleted.`)
     }
   })
-
-  console.log(props.floorId)
-  // Load initial path (onMount)
-  const floor = props.building?.floors.find((f) => f.id === props.floorId)
-  if (floor) {
-    floorOverlay.value = L.imageOverlay(floor.floor_plan_url, buildingBound.value).addTo(
-      toRaw(map.value) as L.Map,
-    )
-  }
-  if (props.floorId !== null) {
-    await loadPath(props.building?.id as string, props.floorId)
-    pathSetNodeVisibility(false)
-  }
 })
 
 // Watch for floor change
@@ -127,6 +118,7 @@ watch(
     if (oldFloorId != null) {
       savePath(props.building?.id as string, oldFloorId as string)
       clearPath()
+      clearPOIs()
     }
 
     // 🔄 Remove old overlay if exists
@@ -148,6 +140,15 @@ watch(
 
     // Load new floor path
     await loadPath(props.building?.id as string, newFloorId)
+
+    if (editorMode.value !== 'PATH') {
+      pathSetNodeVisibility(false)
+    }
+
+    if (editorMode.value !== 'BEACON' || 'PATH') {
+      console.log("yepp")
+      await loadPOIs(props.building?.id as string, newFloorId)
+    }
   },
 )
 

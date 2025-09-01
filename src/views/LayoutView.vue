@@ -62,12 +62,16 @@ const floorId = ref<string | null>(null)
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 
-const editorMode = computed<'PATH' | 'POI' | 'IDLE'>(() => {
+const editorMode = computed<'FLOOR' | 'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
   switch (route.name) {
+    case 'building-floorplan':
+      return 'FLOOR'
     case 'building-walkway':
       return 'PATH'
     case 'building-pois':
       return 'POI'
+    case 'building-beacons':
+      return 'BEACON'
     default:
       return 'IDLE'
   }
