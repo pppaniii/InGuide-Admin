@@ -29,6 +29,10 @@ const props = defineProps<{
   building: BuildingInfo | null
   floorId: string | null
 }>()
+const emit = defineEmits<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (e: 'openOverlay', payload: { type: string; data: any; loading: boolean}): void
+}>()
 
 const buildingBound = ref<[number, number][]>([])
 
@@ -51,7 +55,7 @@ const {
   addOrUpdatePOI,
   updatePOIPosition,
   clearPOIs
-} = usePoiEditor(map as Ref, poiLayer)
+} = usePoiEditor(map as Ref, poiLayer, emit)
 
 onMounted(async () => {
   // Init Map

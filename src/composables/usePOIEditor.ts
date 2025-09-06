@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toRaw, type Ref } from 'vue'
 import L, { LayerGroup, Map, Marker } from 'leaflet'
 import type { POI } from '@/types/poi'
@@ -13,7 +14,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useBuildings } from '@/stores/buildings'
 
-export function usePoiEditor(map: Ref<Map | null>, poiLayer: LayerGroup) {
+export function usePoiEditor(
+  map: Ref<Map | null>,
+  poiLayer: LayerGroup,
+  emit: (e: 'openOverlay', payload: { type: string; data: any; loading: boolean}) => void,
+) {
   const buildingStore = useBuildings()
 
   // Instead of using the store inside helpers, accept IDs explicitly in API
@@ -74,6 +79,89 @@ export function usePoiEditor(map: Ref<Map | null>, poiLayer: LayerGroup) {
     poiLayer.clearLayers()
   }
 
+  function createPOIMarker(
+    latlng: [number, number],
+    poiType: string,
+    id: string,
+    name: string,
+    buildingId: string,
+    floorId: string,
+  ) {
+    const iconDef = poiIconMap[poiType] || faCircle
+    const svgIcon = createSvgIcon(iconDef)
+    const color = poiColorMap[poiType] || '#FDA172'
+
+    const icon = L.divIcon({
+      className: 'custom-poi-icon',
+      html: `
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        color: white;
+        font-weight: 600;
+        font-size: 12px;
+        user-select: none;
+      ">
+        <div style="
+          background-color: ${color};
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid white;
+          box-shadow: 0 0 5px rgba(0,0,0,0.4);
+        ">
+          ${svgIcon}
+        </div>
+        <div style="margin-top: 2px; color: black; background: white; padding: 0 4px; border-radius: 3px; white-space: nowrap;">
+          ${name ?? ''}
+        </div>
+      </div>
+    `,
+      iconSize: [36, 50],
+      iconAnchor: [18, 50],
+    })
+
+    const poi = L.marker(latlng, {
+      icon,
+      title: id,
+      draggable: true,
+    })
+
+    // 👇 no store dependency — just use params
+    poi.on('dragend', async (e) => {
+      const newLatLng = (e.target as L.Marker).getLatLng()
+      try {
+        await poiService.updatePOI(buildingId, floorId, id, [newLatLng.lat, newLatLng.lng])
+        console.log(`POI ${id} updated`)
+      } catch (error) {
+        console.log('error patching new location', error)
+      }
+    })
+
+    poi.on('click', () => {
+      // 1️⃣ Emit immediately to open overlay
+      emit('openOverlay', { type: 'POI', data: null, loading: true })
+
+      // 2️⃣ Fetch data asynchronously
+      poiService
+        .getPOIById(buildingId, id)
+        .then((poiData) => {
+          emit('openOverlay', { type: 'POI', data: poiData, loading: false })
+        })
+        .catch((err) => {
+          console.error('Failed to load POI', err)
+          emit('openOverlay', { type: 'POI', data: null, loading: false })
+        })
+    })
+
+    return poi
+  }
+
   return {
     createPOI,
     loadPOIs,
@@ -103,71 +191,4 @@ function createSvgIcon(icon: IconDefinition, size = 18, color = 'white') {
       <path d="${svgPath}" />
     </svg>
   `
-}
-
-function createPOIMarker(
-  latlng: [number, number],
-  poiType: string,
-  id: string,
-  name: string,
-  buildingId: string,
-  floorId: string,
-) {
-  const iconDef = poiIconMap[poiType] || faCircle
-  const svgIcon = createSvgIcon(iconDef)
-  const color = poiColorMap[poiType] || '#FDA172'
-
-  const icon = L.divIcon({
-    className: 'custom-poi-icon',
-    html: `
-      <div style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        color: white;
-        font-weight: 600;
-        font-size: 12px;
-        user-select: none;
-      ">
-        <div style="
-          background-color: ${color};
-          border-radius: 50%;
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 2px solid white;
-          box-shadow: 0 0 5px rgba(0,0,0,0.4);
-        ">
-          ${svgIcon}
-        </div>
-        <div style="margin-top: 2px; color: black; background: white; padding: 0 4px; border-radius: 3px; white-space: nowrap;">
-          ${name ?? ''}
-        </div>
-      </div>
-    `,
-    iconSize: [36, 50],
-    iconAnchor: [18, 50],
-  })
-
-  const poi = L.marker(latlng, {
-    icon,
-    title: id,
-    draggable: true,
-  })
-
-  // 👇 no store dependency — just use params
-  poi.on('dragend', async (e) => {
-    const newLatLng = (e.target as L.Marker).getLatLng()
-    try {
-      await poiService.updatePOI(buildingId, floorId, id, [newLatLng.lat, newLatLng.lng])
-      console.log(`POI ${id} updated`)
-    } catch (error) {
-      console.log('error patching new location', error)
-    }
-  })
-
-  return poi
 }

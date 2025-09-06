@@ -37,27 +37,37 @@
           >
         </nav>
 
-        <MapEditor ref="mapEditorRef" :building="building" :floorId="floorId" />
+        <MapEditor ref="mapEditorRef" :building="building" :floorId="floorId" @openOverlay="handleOpenOverlay"/>
       </section>
     </main>
   </div>
+  <OverlayPanel :visible="overlayVisible" :title="overlayTitle" @close="overlayVisible = false">
+    <component :is="overlayComponent" v-bind="overlayProps" />
+  </OverlayPanel>
 </template>
 
 <script setup lang="ts">
 import AdminSidePanel from '@/components/AdminSidePanel.vue'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
+import OverlayPanel from '@/components/OverlayPanel.vue'
 
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, shallowRef } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 
 const route = useRoute()
+const overlayVisible = ref(false)
+const overlayTitle = ref('Details')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const overlayComponent = shallowRef<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const overlayProps = ref<Record<string, any>>({})
+
 const id = computed(() => String(route.params.id))
 
 const store = useBuildings()
 const building = computed(() => store.current)
-
 const floorId = ref<string | null>(null)
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
@@ -82,6 +92,17 @@ function handleFloorIdUpdate(newFloorId: string) {
   floorId.value = newFloorId
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleOpenOverlay({ type, data, loading }: { type: string, data: any, loading: boolean }) {
+  overlayVisible.value = true
+  if (type === 'POI') {
+    overlayTitle.value = 'Edit POI'
+    overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
+    overlayProps.value = { poi: data, isLoading: loading }
+  }
+}
+
+
 onMounted(() => {
   floorId.value = building.value?.floors[0].id as string
 })
@@ -92,20 +113,18 @@ watch(
     if (!mapEditorRef.value) return
 
     if (newMode === 'PATH') {
-      mapEditorRef.value.startPathEditing?.()   // show nodes
+      mapEditorRef.value.startPathEditing?.() // show nodes
     } else if (newMode === 'POI') {
-      mapEditorRef.value.startPOIEditing?.()    // hide nodes, allow POI editing
+      mapEditorRef.value.startPOIEditing?.() // hide nodes, allow POI editing
     } else {
       // optional: reset all modes
       mapEditorRef.value.resetEditor?.()
-
     }
 
     console.log(`[Editor Mode] Switched to ${newMode}`)
   },
-  { immediate: true }
+  { immediate: true },
 )
-
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
