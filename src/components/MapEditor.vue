@@ -57,7 +57,8 @@ const {
   loadPOIs,
   addOrUpdatePOI,
   updatePOIPosition,
-  clearPOIs
+  clearPOIs,
+  removePOI
 } = usePoiEditor(map as Ref, poiLayer, emit)
 
 onMounted(async () => {
@@ -116,6 +117,8 @@ onMounted(async () => {
           detail: ''
         }
         createPOI(newPoi, buildingId,floorId)
+        editorState.value = 'IDLE' 
+        console.log(`Editor state is now ${ editorState.value }`)
       }
     }
   })
@@ -234,6 +237,7 @@ defineExpose({
   // POIs
   addOrUpdatePOI,
   updatePOIPosition,
+  removePOI,
 })
 </script>
 

@@ -17,7 +17,10 @@ import { useBuildings } from '@/stores/buildings'
 export function usePoiEditor(
   map: Ref<Map | null>,
   poiLayer: LayerGroup,
-  emit: (e: 'openOverlay', payload: { type: string; data: any; loading: boolean, buildingId: string, floorId: string }) => void,
+  emit: (
+    e: 'openOverlay',
+    payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
+  ) => void,
 ) {
   const buildingStore = useBuildings()
 
@@ -56,7 +59,28 @@ export function usePoiEditor(
   }
 
   function addOrUpdatePOI(buildingId: string, floorId: string, poi: POI) {
-    poiService.addOrUpdatePOI(buildingId, floorId, poi)
+    poiService
+      .addOrUpdatePOI(buildingId, floorId, poi)
+      .then(() => {
+        poiLayer.eachLayer((layer) => {
+          if (layer instanceof L.Marker && layer.options.title === poi.id) {
+            poiLayer.removeLayer(layer)
+          }
+        })
+        const updatedMarker = createPOIMarker(
+          poi.location,
+          poi.type,
+          poi.id,
+          poi.name,
+          buildingId,
+          floorId,
+        )
+        updatedMarker.addTo(toRaw(poiLayer))
+        console.log(`POI ${poi.id} updated and re-rendered`)
+      })
+      .catch((err) => {
+        console.error(`Failed to update POI ${poi.id}`, err)
+      })
   }
 
   function updatePOIPosition(
@@ -138,21 +162,55 @@ export function usePoiEditor(
 
     poi.on('click', () => {
       // 1️⃣ Emit immediately to open overlay
-      emit('openOverlay', { type: 'POI', data: null, loading: true, buildingId: buildingId, floorId: floorId })
+      emit('openOverlay', {
+        type: 'POI',
+        data: null,
+        loading: true,
+        buildingId: buildingId,
+        floorId: floorId,
+      })
 
       // 2️⃣ Fetch data asynchronously
       poiService
         .getPOIById(buildingId, id)
         .then((poiData) => {
-          emit('openOverlay', { type: 'POI', data: poiData as POI, loading: false, buildingId: buildingId, floorId: floorId })
+          emit('openOverlay', {
+            type: 'POI',
+            data: poiData as POI,
+            loading: false,
+            buildingId: buildingId,
+            floorId: floorId,
+          })
         })
         .catch((err) => {
           console.error('Failed to load POI', err)
-          emit('openOverlay', { type: 'POI', data: null, loading: false, buildingId: buildingId, floorId: floorId })
+          emit('openOverlay', {
+            type: 'POI',
+            data: null,
+            loading: false,
+            buildingId: buildingId,
+            floorId: floorId,
+          })
         })
     })
 
     return poi
+  }
+
+  function removePOI(buildingId: string, floorId: string, poiId: string) {
+    poiService
+      .deletePOI(buildingId, floorId, poiId)
+      .then(() => {
+        poiLayer.eachLayer((layer) => {
+          if (layer instanceof L.Marker && layer.options.title === poiId) {
+            poiLayer.removeLayer(layer)
+          }
+        })
+        console.log(`POI ${poiId} deleted successfully`)
+      })
+      .catch((err) => {
+        console.error(`Failed to delete POI ${poiId}`, err)
+      })
   }
 
   return {
@@ -161,6 +219,7 @@ export function usePoiEditor(
     addOrUpdatePOI,
     updatePOIPosition,
     clearPOIs,
+    removePOI,
   }
 }
 

@@ -11,6 +11,12 @@
         v-model="localPOI.detail"
       />
       <p>Tag</p>
+      <select v-model="localPOI.type">
+        <option value="-">-</option>
+        <option value="Restroom">Restroom</option>
+        <option value="Lecture Room">Lecture Room</option>
+        <option value="Computer Lab">Computer Lab</option>
+      </select>
       <p>Image of Place</p>
       <button @click="deletePOI">Delete</button>
       <button @click="saveNewPOIInfo">Save</button>
@@ -22,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import poiService from '@/services/poiService';
 import type { POI } from '@/types/poi';
 import { defineProps, ref, watch, defineEmits } from 'vue'; // Make sure to import defineEmits
 
@@ -34,7 +39,7 @@ interface POIEditorProps {
 }
 
 const props = defineProps<POIEditorProps>()
-const emit = defineEmits(['close']) // Correct declaration, placed here to be available to all functions
+const emit = defineEmits(['close', 'save-poi', 'delete-poi'])
 
 // Optional: local reactive copy if you want
 const localPOI = ref<POI | null>(props.poi)
@@ -47,18 +52,25 @@ watch(
 )
 
 function saveNewPOIInfo(){
-  const buildingId = props.buildingId
-  const floorId = props.floorId
   console.log("POI save...")
-  poiService.addOrUpdatePOI(buildingId, floorId, localPOI.value as POI)
-  emit('close') // Now 'emit' is correctly defined and available
+  const payload = {
+    buildingId: props.buildingId,
+    floorId: props.floorId,
+    newPoi: localPOI.value,
+  }
+  emit('save-poi', payload)
+  emit('close')
 }
 
 function deletePOI(){
-  const buildingId = props.buildingId
-  const floorId = props.floorId
   const thisPOIId = localPOI.value?.id || ''
-  poiService.deletePOI(buildingId, floorId, thisPOIId)
+  console.log(`deleting ${ thisPOIId }`)
+  const payload = {
+    buildingId: props.buildingId,
+    floorId: props.floorId,
+    poiId: thisPOIId,
+  }
+  emit('delete-poi', payload)
   emit('close')
 }
 </script>

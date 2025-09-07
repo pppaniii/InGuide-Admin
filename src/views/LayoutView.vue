@@ -42,7 +42,13 @@
     </main>
   </div>
   <OverlayPanel :visible="overlayVisible" :title="overlayTitle" @close="overlayVisible = false">
-    <component :is="overlayComponent" v-bind="overlayProps" @close="overlayVisible = false"/>
+    <component
+    :is="overlayComponent"
+    v-bind="overlayProps"
+    @close="overlayVisible = false"
+    @save-poi="savePOIInfo"
+    @delete-poi="deletePOI"
+    />
   </OverlayPanel>
 </template>
 
@@ -103,8 +109,22 @@ async function handleOpenOverlay({ type, data, loading, buildingId, floorId }: {
 }
 
 
-// Functions 
+// POI Functions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function savePOIInfo(payload: any) {
+  const buildingId = payload.buildingId
+  const floor = payload.floorId
+  const newPOI = payload.newPoi
+  await mapEditorRef.value?.addOrUpdatePOI(buildingId, floor, newPOI)
+}
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function deletePOI(payload: any) {
+  const buildingId = payload.buildingId
+  const floor = payload.floorId
+  const poiId = payload.poiId
+  mapEditorRef.value?.removePOI(buildingId, floor, poiId)
+}
 
 onMounted(() => {
   floorId.value = building.value?.floors[0].id as string
