@@ -28,7 +28,7 @@ defineEmits(['close'])
   right: 0;
   width: 380px;
   height: 100%;
-  background: #fff;
+  background: #D8EAD2;
   box-shadow: -2px 0 8px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;

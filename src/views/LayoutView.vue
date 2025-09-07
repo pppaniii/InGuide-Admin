@@ -42,7 +42,7 @@
     </main>
   </div>
   <OverlayPanel :visible="overlayVisible" :title="overlayTitle" @close="overlayVisible = false">
-    <component :is="overlayComponent" v-bind="overlayProps" />
+    <component :is="overlayComponent" v-bind="overlayProps" @close="overlayVisible = false"/>
   </OverlayPanel>
 </template>
 
@@ -93,14 +93,17 @@ function handleFloorIdUpdate(newFloorId: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleOpenOverlay({ type, data, loading }: { type: string, data: any, loading: boolean }) {
+async function handleOpenOverlay({ type, data, loading, buildingId, floorId }: { type: string, data: any, loading: boolean, buildingId: string, floorId: string }) {
   overlayVisible.value = true
   if (type === 'POI') {
     overlayTitle.value = 'Edit POI'
     overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
-    overlayProps.value = { poi: data, isLoading: loading }
+    overlayProps.value = { poi: data, isLoading: loading, buildingId: buildingId, floorId: floorId }
   }
 }
+
+
+// Functions 
 
 
 onMounted(() => {
@@ -128,7 +131,6 @@ watch(
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
-
 <style scoped>
 .admin-shell {
   display: grid;

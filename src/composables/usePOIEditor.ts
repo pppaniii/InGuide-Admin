@@ -17,35 +17,28 @@ import { useBuildings } from '@/stores/buildings'
 export function usePoiEditor(
   map: Ref<Map | null>,
   poiLayer: LayerGroup,
-  emit: (e: 'openOverlay', payload: { type: string; data: any; loading: boolean}) => void,
+  emit: (e: 'openOverlay', payload: { type: string; data: any; loading: boolean, buildingId: string, floorId: string }) => void,
 ) {
   const buildingStore = useBuildings()
 
   // Instead of using the store inside helpers, accept IDs explicitly in API
-  function createPOI(
-    buildingId: string,
-    floorId: string,
-    name: string,
-    latlng: [number, number],
-    poiType?: string,
-    poiId?: string,
-  ): Marker {
+  function createPOI(poi: POI, buildingId: string, floorId: string): Marker {
     console.log('POI CREATED!')
-    const id = poiId || generateId()
-    const type = poiType || '-'
-    const poiMarker = createPOIMarker(latlng, type, id, name, buildingId, floorId)
+    const id = poi.id || generateId()
+    const type = poi.type || '-'
+    const poiMarker = createPOIMarker(poi.location, type, id, poi.name, buildingId, floorId)
     poiMarker.addTo(toRaw(poiLayer))
 
     const floorNum = buildingStore.floorById(buildingId, floorId)?.floor as number
     // SAVE POI
     const newPOI: POI = {
       id: id,
-      name: name,
-      location: latlng,
+      name: poi.name,
+      location: poi.location,
       floor: floorNum,
       type: type,
-      images: [],
-      detail: '-',
+      images: poi.images,
+      detail: poi.detail,
     }
     addOrUpdatePOI(buildingId, floorId, newPOI)
     return poiMarker
@@ -55,7 +48,7 @@ export function usePoiEditor(
     try {
       const loadedPOIs = await poiService.getPOIs(buildingId, floorId)
       loadedPOIs.forEach((p) => {
-        createPOI(buildingId, floorId, p.name, p.location, p.type, p.id)
+        createPOI(p, buildingId, floorId)
       })
     } catch (error) {
       console.log('Failed to load POIs:', error)
@@ -145,17 +138,17 @@ export function usePoiEditor(
 
     poi.on('click', () => {
       // 1️⃣ Emit immediately to open overlay
-      emit('openOverlay', { type: 'POI', data: null, loading: true })
+      emit('openOverlay', { type: 'POI', data: null, loading: true, buildingId: buildingId, floorId: floorId })
 
       // 2️⃣ Fetch data asynchronously
       poiService
         .getPOIById(buildingId, id)
         .then((poiData) => {
-          emit('openOverlay', { type: 'POI', data: poiData, loading: false })
+          emit('openOverlay', { type: 'POI', data: poiData as POI, loading: false, buildingId: buildingId, floorId: floorId })
         })
         .catch((err) => {
           console.error('Failed to load POI', err)
-          emit('openOverlay', { type: 'POI', data: null, loading: false })
+          emit('openOverlay', { type: 'POI', data: null, loading: false, buildingId: buildingId, floorId: floorId })
         })
     })
 

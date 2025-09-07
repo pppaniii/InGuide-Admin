@@ -11,6 +11,8 @@ import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
 import type { BuildingInfo } from '@/types/types'
 import { usePoiEditor } from '@/composables/usePOIEditor'
+import type { POI } from '@/types/poi'
+import { generateId } from '@/utils/generateId'
 
 type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON' | 'FLOOR'
 const editorMode = ref<EditorMode>('IDLE')
@@ -31,7 +33,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'openOverlay', payload: { type: string; data: any; loading: boolean}): void
+  (e: 'openOverlay', payload: { type: string; data: any; loading: boolean, buildingId: string, floorId: string}): void
 }>()
 
 const buildingBound = ref<[number, number][]>([])
@@ -49,6 +51,7 @@ const {
   clearPath,
   pathSetNodeVisibility,
 } = usePathEditor(map as Ref, drawnItems)
+
 const {
   createPOI,
   loadPOIs,
@@ -103,7 +106,16 @@ onMounted(async () => {
         const buildingId = props.building?.id as string
         const floorId = props.floorId as string
         const name = await prompt("Enter New Point of Interest Name 👇", "new POI") as string
-        createPOI(buildingId,floorId , name, newLatLng)
+        const newPoi: POI = {
+          id: generateId(),
+          name: name,
+          location: newLatLng,
+          floor: 0,
+          type: '-',
+          images: [],
+          detail: ''
+        }
+        createPOI(newPoi, buildingId,floorId)
       }
     }
   })
