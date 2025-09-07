@@ -1,3 +1,81 @@
-.text-test {
-    color: #2F2F2F;
+.floor-panel {
+    display: flex;
+    flex-direction: column;
+    /* background-color: #D8EAD2; */
+    width: 220px;
+    height: 60%;
+    color: #2f2f2f;
+}
+
+.floor-title {
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    color: #2f2f2f;
+}
+
+.floor-list {
+    flex: 1;
+    flex-direction: column;
+    background: #D8EAD2;
+    border-radius: 10px;
+}
+
+.floor-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 20px;
+    border-bottom: 1px solid #6B7280;
+    font-weight: 500;
+}
+
+.floor-item:first-child {
+    padding-top: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.floor-item:last-child {
+    border-bottom: none;
+}
+
+.floor-item:hover {
+    background-color: #A3C4A8;
+}
+
+.floor-item.active {
+    background-color: #7DA085;
+    color: #FEFBF6;
+}
+
+.floor-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn.add {
+    background: #7DA085;
+    color: #fff;
+}
+
+.btn.edit {
+    background: #7DA085;
+    color: #fff;
+}
+
+.btn.delete {
+    background: #CF4648;
+    color: #fff;
 }

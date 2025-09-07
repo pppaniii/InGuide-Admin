@@ -1,6 +1,10 @@
 <template>
-  <div class="relative w-full h-full map-wrapper">
-    <div ref="mapContainer" id="map" class="absolute inset-0"></div>
+  <div class="map-wrapper">
+    <div ref="mapContainer" id="map"></div>
+    <div v-if="!floorOverlay" class="map-empty-hint">
+      <FontAwesomeIcon :icon="faImage" class="empty-icon" />
+      <span>No floor plan available</span>
+    </div>
   </div>
 </template>
 
@@ -13,6 +17,7 @@ import type { BuildingInfo } from '@/types/types'
 import { usePoiEditor } from '@/composables/usePOIEditor'
 import type { POI } from '@/types/poi'
 import { generateId } from '@/utils/generateId'
+import { faImage } from '@fortawesome/free-solid-svg-icons'
 
 type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON' | 'FLOOR'
 const editorMode = ref<EditorMode>('IDLE')
@@ -68,7 +73,7 @@ onMounted(async () => {
     zoomControl: false,
     attributionControl: false,
   })
-  toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
+  // toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
   toRaw(map.value)?.addLayer(poiLayer)
   buildingBound.value = [props.building?.SW_bound, props.building?.NE_bound] as [number, number][]
@@ -237,25 +242,4 @@ defineExpose({
 })
 </script>
 
-<style>
-#map {
-  height: 100%;
-  width: 100%;
-}
-
-.map-wrapper {
-  overflow: hidden;
-}
-
-.custom-circle-node div {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #51854e;
-  border: 2px solid #fffbf3;
-}
-
-.custom-circle-node.selected div {
-  background-color: #e8a34f;
-}
-</style>
+<style src="../styles/MapEditor.css"></style>

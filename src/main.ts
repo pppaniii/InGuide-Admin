@@ -18,7 +18,8 @@ import {
     faPlus, 
     faTrash,
     faLocationDot,
-    faChevronLeft } from '@fortawesome/free-solid-svg-icons'
+    faChevronLeft,
+    faImage } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
     faRightFromBracket, 
@@ -26,7 +27,8 @@ library.add(
     faPlus, 
     faTrash,
     faLocationDot,
-    faChevronLeft)
+    faChevronLeft,
+    faImage)
 
 const app = createApp(App)
 

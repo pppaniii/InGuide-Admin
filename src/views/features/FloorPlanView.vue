@@ -1,6 +1,33 @@
 <template>
-  <div class="canvas">
-    <div class="text-test">Floor Plan Management: {{ building?.name ?? '...' }} building</div>
+  <!-- Panel Title -->
+  <div>
+    <div class="floor-title">
+      {{ building?.name ?? '...' }}
+    </div>
+  </div>
+  <div class="floor-panel">
+    <!-- Floor List -->
+    <div class="floor-list">
+      <button
+        v-for="floor in props.building.floors"
+        :key="floor.id"
+        class="floor-item"
+        :class="{ active: floor.id === props.floorId }"
+        @click="emit('update:floorId', floor.id)"
+        >
+          {{ floor.floor }}
+      </button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="floor-actions">
+        <button class="btn add">Add Floor</button>
+        <button class="btn edit">Edit Floor</button>
+        <button class="btn delete">Delete Floor</button>
+    </div>
+  </div>
+  <!-- <div class="canvas">
+    <div class="floor-">Floor Plan Management: {{ building?.name ?? '...' }} building</div>
   </div>
   <p>temporary change floor buttons:</p>
   <div v-for="floor in props.building.floors" :key="floor.id">
@@ -11,19 +38,19 @@
     >
       {{ floor.floor }}
     </button>
-  </div>
+  </div> -->
 </template>
 
 <script setup lang="ts">
 import type { BuildingInfo } from '@/types/types'
 import MapEditor from '@/components/MapEditor.vue'
-import type { Ref } from 'vue';
+// import type { Ref } from 'vue';
 
 const props = defineProps<{
   building: BuildingInfo
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
-  floorId: Ref<string>
+  floorId: string
 }>()
 
 const emit = defineEmits(['update:floorId'])
