@@ -1,3 +1,81 @@
-.test {
-    color: #2F2F2F;
+.walkway-title {
+    font-weight: 600;
+    font-size: 18px;
+    height: 90px;
+    color: #2f2f2f;
+}
+
+.walkway-panel {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    color: #2f2f2f;
+    height: 60%;
+}
+
+.walkway-floor-list {
+    flex: 1;
+    flex-direction: column;
+    background: #D8EAD2;
+    border-radius: 10px;
+    height: 300px;
+}
+
+.walkway-floor-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 20px;
+    border-bottom: 1px solid #6B7280;
+    font-weight: 500;
+}
+
+.walkway-floor-item:first-child {
+    padding-top: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* .walkway-floor-item:last-child { 
+    border-bottom: none; 
+} */
+
+.walkway-floor-item.active {
+  background-color: #7DA085;
+  color: #FEFBF6;
+  font-weight: 600;
+}
+
+.walkway-floor-item.active:first-child {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.walkway-floor-item.active:last-child {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.walkway-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #fff;
+}
+
+.btn.connect { 
+    background: #7DA085; 
+}
+
+.btn.delete  { 
+    background: #CF4648; 
 }

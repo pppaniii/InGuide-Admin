@@ -1,17 +1,16 @@
+.floor-title {
+    font-weight: 600;
+    font-size: 18px;
+    height: 90px;
+    color: #2f2f2f;
+}
+
 .floor-panel {
     display: flex;
     flex-direction: column;
     width: 220px;
+    color: #2f2f2f;
     height: 60%;
-    color: #2f2f2f;
-}
-
-.floor-title {
-    font-weight: 600;
-    font-size: 18px;
-    /* margin-top: 20px; */
-    margin-bottom: 5px;
-    color: #2f2f2f;
 }
 
 .floor-list {
@@ -36,9 +35,9 @@
     border-top-right-radius: 10px;
 }
 
-.floor-item:last-child {
+/* .floor-item:last-child {
     border-bottom: none;
-}
+} */
 
 .floor-item:hover {
     background-color: #A3C4A8;
@@ -57,24 +56,22 @@
 }
 
 .floor-btn {
-    padding: 8px;
+    padding: 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
+    color: #fff;
 }
 
 .floor-btn.add {
     background: #7DA085;
-    color: #fff;
 }
 
 .floor-btn.edit {
     background: #7DA085;
-    color: #fff;
 }
 
 .floor-btn.delete {
     background: #CF4648;
-    color: #fff;
 }

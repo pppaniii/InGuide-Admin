@@ -1,11 +1,33 @@
 <template>
-  <div class="test">
-    Walkways Management: {{ building?.name ?? '...' }} <br />
-    building
+  <div>
+    <div class="walkway-title">
+      Walkways Management: <br>
+      {{ building?.name ?? '...' }} <br/>
+    </div>
   </div>
-  <button @click="triggerMapConnect" style="background-color: aliceblue">Connect/Add Path</button>
+  <div class="walkway-panel">
+    <!-- show floor list, cant switch floor -->
+    <div class="walkway-floor-list">
+      <div
+        v-for="f in building?.floors ?? []"
+        :key="f.id"
+        class="walkway-floor-item"
+        :class="{ active: f.id === floorId.value }"
+      >
+        {{ f.floor }}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="walkway-actions">
+      <button class="btn connect" @click="triggerMapConnect">Connect / Add Path</button>
+      <button class="btn delete"  @click="triggerMapDelete">Delete Path</button>
+    </div>
+  </div>
+  
+  <!-- <button @click="triggerMapConnect" style="background-color: aliceblue">Connect/Add Path</button>
   <button @click="triggerMapDelete" style="background-color: aliceblue">Delete Path</button>
-  <p>temporary change floor buttons:</p>
+  <p>temporary change floor buttons:</p> -->
 </template>
 
 <script setup lang="ts">
