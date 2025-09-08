@@ -37,3 +37,16 @@
   height: 38px;
   opacity: .55;
 }
+
+.custom-circle-node div {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #51854e;
+  border: 2px solid #fffbf3;
+}
+
+.custom-circle-node.selected div {
+  background-color: #e8a34f;
+}
+

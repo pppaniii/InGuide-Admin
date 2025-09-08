@@ -218,6 +218,17 @@ export function usePoiEditor(
       })
   }
 
+function updatePOIDraggables(isDraggable: boolean) {
+  poiLayer.eachLayer((layer) => {
+    if (layer instanceof L.Marker) {
+      const dragging = layer.dragging as L.Handler
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      isDraggable ? dragging.enable() : dragging.disable()
+    }
+  })
+}
+
+
   return {
     createPOI,
     loadPOIs,
@@ -225,18 +236,19 @@ export function usePoiEditor(
     updatePOIPosition,
     clearPOIs,
     removePOI,
+    updatePOIDraggables,
   }
 }
 
 // HELPER FUNCTIONS
 const poiIconMap: Record<string, IconDefinition> = {
-  'Restroom': faRestroom,
+  Restroom: faRestroom,
   'Lecture Room': faChalkboardTeacher,
   'Computer Lab': faDesktop,
 }
 
 const poiColorMap: Record<string, string> = {
-  'Restroom': '#FF0000',
+  Restroom: '#FF0000',
   'Lecture Room': '#00FF00',
   'Computer Lab': '#0000FF',
 }

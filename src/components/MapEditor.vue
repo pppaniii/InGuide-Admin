@@ -63,7 +63,8 @@ const {
   addOrUpdatePOI,
   updatePOIPosition,
   clearPOIs,
-  removePOI
+  removePOI,
+  updatePOIDraggables,
 } = usePoiEditor(map as Ref, poiLayer, emit)
 
 onMounted(async () => {
@@ -101,6 +102,7 @@ onMounted(async () => {
 
           console.log(`Node ${newNodeId} created and connected.`)
           console.log(connections)
+          savePath(props.building?.id as string, props.floorId as string)
         }
       }
     }
@@ -122,7 +124,7 @@ onMounted(async () => {
           detail: ''
         }
         createPOI(newPoi, buildingId,floorId)
-        editorState.value = 'IDLE' 
+        editorState.value = 'IDLE'
         console.log(`Editor state is now ${ editorState.value }`)
       }
     }
@@ -145,7 +147,12 @@ onMounted(async () => {
     if (editorState.value === 'DELETING') {
       const nodeId = event.layer.options.title as string
       const success = deleteNode(nodeId)
-      console.log(success ? `Node ${nodeId} deleted.` : `Node ${nodeId} cannot be deleted.`)
+      if (success) {
+        savePath(props.building?.id as string, props.floorId as string)
+        console.log(`Node ${nodeId} deleted.`)
+      } else {
+        console.log(`Node ${nodeId} cannot be deleted.`)
+      }
     }
   })
 })
@@ -159,7 +166,6 @@ watch(
     // Save old floor path
 
     if (oldFloorId != null) {
-      savePath(props.building?.id as string, oldFloorId as string)
       clearPath()
       clearPOIs()
     }
@@ -202,18 +208,21 @@ onBeforeUnmount(() => {
 // Exposed methods to parent
 function startPathEditing() {
   editorMode.value = editorMode.value !== 'PATH' ? 'PATH' : 'IDLE'
+  updatePOIDraggables(false)
   pathSetNodeVisibility(true) // show nodes only in PATH mode
   console.log(`[Editor Mode] Switched to ${editorMode.value}`)
 }
 
 function startPOIEditing() {
   editorMode.value = editorMode.value !== 'POI' ? 'POI' : 'IDLE'
+  updatePOIDraggables(true)
   pathSetNodeVisibility(false) // hide nodes in POI mode, show in PATH mode
   console.log(`[Editor Mode] Switched to ${editorMode.value}`)
 }
 
 function resetEditor() {
   editorMode.value = 'IDLE'
+  updatePOIDraggables(false)
   pathSetNodeVisibility(false)
   console.log(`[Editor Mode] Switched to ${editorMode.value}`)
 }

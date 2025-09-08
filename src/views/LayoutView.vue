@@ -69,7 +69,6 @@ const overlayTitle = ref('Details')
 const overlayComponent = shallowRef<any>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const overlayProps = ref<Record<string, any>>({})
-
 const id = computed(() => String(route.params.id))
 
 const store = useBuildings()
@@ -134,7 +133,6 @@ watch(
   editorMode,
   (newMode) => {
     if (!mapEditorRef.value) return
-
     if (newMode === 'PATH') {
       mapEditorRef.value.startPathEditing?.() // show nodes
     } else if (newMode === 'POI') {
