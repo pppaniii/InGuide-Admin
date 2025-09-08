@@ -1,6 +1,10 @@
 <template>
-  <div class="canvas">
-    <div class="test">Beacons Management: {{ building?.name ?? '...' }} building</div>
+  <!-- Beacon Title -->
+  <div>
+    <div class="beacon-title">
+      Beacons Management: <br>
+      {{ building?.name ?? '...' }}
+    </div>
   </div>
 </template>
 
