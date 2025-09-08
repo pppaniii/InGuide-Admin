@@ -1,28 +1,63 @@
 <template>
-  <div>
+  <div class="poi-edit">
     <div v-if="isLoading">Loading POI...</div>
     <div v-else-if="localPOI">
-      <input class="input-box" type="text" placeholder="New POI" v-model="localPOI.name" />
-      <p>Information</p>
-      <input
-        class="input-box"
-        type="text"
-        placeholder="Enter Information Here"
-        v-model="localPOI.detail"
-      />
-      <p>Tag</p>
-      <select v-model="localPOI.type">
-        <option value="-">-</option>
-        <option value="Restroom">Restroom</option>
-        <option value="Lecture Room">Lecture Room</option>
-        <option value="Computer Lab">Computer Lab</option>
-      </select>
-      <p>Images of Place</p>
-      <ImageGallery :images="localPOI.images" @add="handleAddImage" @remove="handleRemoveImage" />
-      <button @click="deletePOI">Delete</button>
-      <button @click="saveNewPOIInfo">Save</button>
+
+      <!-- Title -->
+      <div class="title-row">
+        <input
+          class="name-input"
+          type="text"
+          placeholder="New POI"
+          v-model="localPOI.name"
+        />
+        <font-awesome-icon icon="pencil" />
+      </div>   
+      <hr class="section-divider">
+
+      <!-- Infomation Edit -->
+      <label class="poi-field info">
+        <span class="title">Infomation</span>
+        <textarea
+          class="textarea"
+          placeholder="Enter Information Here"
+          rows="5"
+          v-model="localPOI.detail"
+        />
+      </label>
+
+      <!-- Tag Select -->
+      <label class="poi-field">
+        <span class="title">Tag</span>
+        <div class="select-wrap">
+          <select v-model="localPOI.type" class="select">
+            <option value="-">-</option>
+            <option value="Restroom">Restroom</option>
+            <option value="Lecture Room">Lecture Room</option>
+            <option value="Computer Lab">Computer Lab</option>
+          </select>
+        </div>
+      </label>
+      
+      <!-- Image -->
+      <div class="poi-field">
+        <span class="title">Image of Place</span>
+        <ImageGallery 
+          :images="localPOI.images" 
+          @add="handleAddImage" 
+          @remove="handleRemoveImage" 
+        />
+      </div>
+
+      <!-- Action button -->
+      <div class="poi-action">
+        <button type="button" class="btn cancel" @click="deletePOI">Delete</button>
+        <!-- <button type="button" class="btn ghost">Edit Position</button> -->
+        <button type="button" class="btn save" @click="saveNewPOIInfo">Save</button>      
+      </div>
     </div>
-    <div v-else>
+
+    <div v-else class="empty">
       <p>No POI data available.</p>
     </div>
   </div>
@@ -33,6 +68,7 @@ import type { POI } from '@/types/poi'
 import { defineProps, ref, watch, defineEmits } from 'vue' // Make sure to import defineEmits
 import ImageGallery from '../ImageGallery.vue'
 import imageService from '@/services/imageService'
+import '@/styles/POIEditor.css'
 
 interface POIEditorProps {
   poi: POI | null // will be null initially if loading
@@ -96,9 +132,3 @@ async function handleRemoveImage(index: number) {
   }
 }
 </script>
-
-<style>
-.input-box {
-  background-color: #fefbf6;
-}
-</style>
