@@ -1,5 +1,18 @@
 <template>
   <div class="map-wrapper">
+    <div class="map-label" v-if="editorState != 'IDLE'">
+        <div v-if="editorState == 'CONNECTING'">
+          <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
+          <a v-else>select a node to connect</a>
+          </div>
+        <div v-if="editorState == 'DELETING'">
+          <a>select a node to delete</a>
+        </div>
+        <div v-if="editorState == 'CREATING'">
+          <a>click anywhere to add a POI</a>
+        </div>
+
+    </div>
     <div ref="mapContainer" id="map"></div>
     <div v-if="!floorOverlay" class="map-empty-hint">
       <FontAwesomeIcon :icon="faImage" class="empty-icon" />
@@ -37,8 +50,11 @@ const props = defineProps<{
   floorId: string | null
 }>()
 const emit = defineEmits<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (e: 'openOverlay', payload: { type: string; data: any; loading: boolean, buildingId: string, floorId: string}): void
+  (
+    e: 'openOverlay',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
+  ): void
 }>()
 
 const buildingBound = ref<[number, number][]>([])
@@ -108,12 +124,12 @@ onMounted(async () => {
     }
 
     if (editorMode.value === 'POI') {
-      if (editorState.value === 'CREATING'){
+      if (editorState.value === 'CREATING') {
         const latLng = event.latlng
         const newLatLng = [latLng.lat, latLng.lng] as [number, number]
         const buildingId = props.building?.id as string
         const floorId = props.floorId as string
-        const name = await prompt("Enter New Point of Interest Name 👇", "new POI") as string
+        const name = (await prompt('Enter New Point of Interest Name 👇', 'new POI')) as string
         const newPoi: POI = {
           id: generateId(),
           name: name,
@@ -121,11 +137,11 @@ onMounted(async () => {
           floor: 0,
           type: '-',
           images: [],
-          detail: ''
+          detail: '',
         }
-        createPOI(newPoi, buildingId,floorId)
+        createPOI(newPoi, buildingId, floorId)
         editorState.value = 'IDLE'
-        console.log(`Editor state is now ${ editorState.value }`)
+        console.log(`Editor state is now ${editorState.value}`)
       }
     }
   })
@@ -190,12 +206,11 @@ watch(
     // Load new floor path
     await loadPath(props.building?.id as string, newFloorId)
 
-    if (editorMode.value !== 'PATH') {
-      pathSetNodeVisibility(false)
+    if (editorMode.value == 'PATH') {
+      pathSetNodeVisibility(true)
     }
 
-    if (editorMode.value !== 'BEACON' || 'PATH') {
-      console.log('yepp')
+    if (editorMode.value !== 'BEACON' && editorMode.value !== 'PATH') {
       await loadPOIs(props.building?.id as string, newFloorId)
     }
   },

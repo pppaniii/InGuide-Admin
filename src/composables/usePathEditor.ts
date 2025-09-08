@@ -162,8 +162,15 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
 
   function pathSetNodeVisibility(visible: boolean) {
     nodeMarkers.forEach((marker) => {
-      const el = marker.getElement()
-      if (el) el.style.display = visible ? '' : 'none'
+      if (visible) {
+        if (!drawnItems.hasLayer(marker)) {
+          drawnItems.addLayer(marker)
+        }
+      } else {
+        if (drawnItems.hasLayer(marker)) {
+          drawnItems.removeLayer(marker)
+        }
+      }
     })
   }
 
