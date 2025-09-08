@@ -2,6 +2,7 @@
   <!-- Panel Title -->
   <div>
     <div class="floor-title">
+      Floor Management: <br>
       {{ building?.name ?? '...' }}
     </div>
   </div>
@@ -21,9 +22,9 @@
 
     <!-- Action Buttons -->
     <div class="floor-actions">
-        <button class="btn add">Add Floor</button>
-        <button class="btn edit">Edit Floor</button>
-        <button class="btn delete">Delete Floor</button>
+        <button class="floor-btn add">Add Floor</button>
+        <button class="floor-btn edit">Edit Floor</button>
+        <button class="floor-btn delete">Delete Floor</button>
     </div>
   </div>
   <!-- <div class="canvas">

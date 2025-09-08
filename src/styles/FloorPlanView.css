@@ -1,7 +1,6 @@
 .floor-panel {
     display: flex;
     flex-direction: column;
-    /* background-color: #D8EAD2; */
     width: 220px;
     height: 60%;
     color: #2f2f2f;
@@ -10,8 +9,8 @@
 .floor-title {
     font-weight: 600;
     font-size: 18px;
-    margin-top: 20px;
-    margin-bottom: 15px;
+    /* margin-top: 20px; */
+    margin-bottom: 5px;
     color: #2f2f2f;
 }
 
@@ -57,7 +56,7 @@
     margin-top: 20px;
 }
 
-.btn {
+.floor-btn {
     padding: 8px;
     border: none;
     border-radius: 4px;
@@ -65,17 +64,17 @@
     font-weight: 500;
 }
 
-.btn.add {
+.floor-btn.add {
     background: #7DA085;
     color: #fff;
 }
 
-.btn.edit {
+.floor-btn.edit {
     background: #7DA085;
     color: #fff;
 }
 
-.btn.delete {
+.floor-btn.delete {
     background: #CF4648;
     color: #fff;
 }
