@@ -2,7 +2,7 @@
   <div>
     <div v-if="isLoading">Loading POI...</div>
     <div v-else-if="localPOI">
-      <h1>{{ localPOI.name }}</h1>
+      <input class="input-box" type="text" placeholder="New POI" v-model="localPOI.name" />
       <p>Information</p>
       <input
         class="input-box"
@@ -17,7 +17,8 @@
         <option value="Lecture Room">Lecture Room</option>
         <option value="Computer Lab">Computer Lab</option>
       </select>
-      <p>Image of Place</p>
+      <p>Images of Place</p>
+      <ImageGallery :images="localPOI.images" @add="handleAddImage" @remove="handleRemoveImage" />
       <button @click="deletePOI">Delete</button>
       <button @click="saveNewPOIInfo">Save</button>
     </div>
@@ -28,8 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import type { POI } from '@/types/poi';
-import { defineProps, ref, watch, defineEmits } from 'vue'; // Make sure to import defineEmits
+import type { POI } from '@/types/poi'
+import { defineProps, ref, watch, defineEmits } from 'vue' // Make sure to import defineEmits
+import ImageGallery from '../ImageGallery.vue'
+import imageService from '@/services/imageService'
 
 interface POIEditorProps {
   poi: POI | null // will be null initially if loading
@@ -51,8 +54,11 @@ watch(
   },
 )
 
-function saveNewPOIInfo(){
-  console.log("POI save...")
+function saveNewPOIInfo() {
+  console.log('POI save...')
+  if (localPOI.value?.name == '') {
+    localPOI.value.name = 'Unnamed POI'
+  }
   const payload = {
     buildingId: props.buildingId,
     floorId: props.floorId,
@@ -62,9 +68,9 @@ function saveNewPOIInfo(){
   emit('close')
 }
 
-function deletePOI(){
+function deletePOI() {
   const thisPOIId = localPOI.value?.id || ''
-  console.log(`deleting ${ thisPOIId }`)
+  console.log(`deleting ${thisPOIId}`)
   const payload = {
     buildingId: props.buildingId,
     floorId: props.floorId,
@@ -72,6 +78,22 @@ function deletePOI(){
   }
   emit('delete-poi', payload)
   emit('close')
+}
+
+async function handleAddImage(file: File) {
+  const imgUrl: string = await imageService.uploadImage(file)
+  localPOI.value?.images.push(imgUrl)
+}
+
+async function handleRemoveImage(index: number) {
+  const url = localPOI.value?.images[index] as string
+  try {
+    await imageService.deleteImage(url) // 🔥 remove from backend
+    localPOI.value?.images.splice(index, 1) // remove locally
+  } catch (err) {
+    console.error('Failed to delete image:', err)
+    alert('Could not delete image. Please try again.')
+  }
 }
 </script>
 

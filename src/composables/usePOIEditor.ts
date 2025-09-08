@@ -230,13 +230,13 @@ export function usePoiEditor(
 
 // HELPER FUNCTIONS
 const poiIconMap: Record<string, IconDefinition> = {
-  Restroom: faRestroom,
+  'Restroom': faRestroom,
   'Lecture Room': faChalkboardTeacher,
   'Computer Lab': faDesktop,
 }
 
 const poiColorMap: Record<string, string> = {
-  Restroom: '#FF0000',
+  'Restroom': '#FF0000',
   'Lecture Room': '#00FF00',
   'Computer Lab': '#0000FF',
 }

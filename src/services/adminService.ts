@@ -1,4 +1,3 @@
-// mock API
 import type { BuildingInfo } from '@/types/types'
 import axios from 'axios'
 
