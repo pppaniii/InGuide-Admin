@@ -13,6 +13,7 @@ import {
   faCircle,
 } from '@fortawesome/free-solid-svg-icons'
 import { useBuildings } from '@/stores/buildings'
+import { usePOIStore } from '@/stores/pois'
 
 export function usePoiEditor(
   map: Ref<Map | null>,
@@ -23,6 +24,7 @@ export function usePoiEditor(
   ) => void,
 ) {
   const buildingStore = useBuildings()
+  const poisStore = usePOIStore()
 
   // Instead of using the store inside helpers, accept IDs explicitly in API
   function createPOI(poi: POI, buildingId: string, floorId: string): Marker {
@@ -53,6 +55,7 @@ export function usePoiEditor(
       loadedPOIs.forEach((p) => {
         createPOI(p, buildingId, floorId)
       })
+      poisStore.loadPOIs(loadedPOIs)
     } catch (error) {
       console.log('Failed to load POIs:', error)
     }
@@ -76,6 +79,7 @@ export function usePoiEditor(
           floorId,
         )
         updatedMarker.addTo(toRaw(poiLayer))
+        poisStore.addPOI(poi)
         console.log(`POI ${poi.id} updated and re-rendered`)
       })
       .catch((err) => {
@@ -94,6 +98,7 @@ export function usePoiEditor(
 
   function clearPOIs() {
     poiLayer.clearLayers()
+    poisStore.clearPOIs()
   }
 
   function createPOIMarker(
