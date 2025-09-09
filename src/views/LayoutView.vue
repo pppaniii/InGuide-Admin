@@ -66,9 +66,10 @@ import MapEditor from '@/components/MapEditor.vue'
 import OverlayPanel from '@/components/OverlayPanel.vue'
 
 import { computed, onMounted, ref, watch, shallowRef } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 
+const router = useRouter()
 const route = useRoute()
 const overlayVisible = ref(false)
 const overlayTitle = ref('Details')
@@ -119,13 +120,14 @@ async function handleOpenOverlay({
   buildingId: string
   floorId: string
 }) {
-  overlayVisible.value = true
-  if (type === 'POI') {
+  if (type === 'POI' && editorMode.value == 'POI') {
+    overlayVisible.value = true
     overlayTitle.value = 'Edit POI'
     overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
     overlayProps.value = { poi: data, isLoading: loading, buildingId: buildingId, floorId: floorId }
   }
-  if (type === 'BEACON') {
+  if (type === 'BEACON' && editorMode.value == 'BEACON') {
+    overlayVisible.value = true
     overlayTitle.value = 'Edit Beacon'
     overlayComponent.value = (await import('@/components/overlayContents/beaconEditor.vue')).default
     overlayProps.value = { beacon: data, isLoading: loading, buildingId, floorId }
@@ -163,27 +165,44 @@ async function deleteBeacon(payload: any) {
   overlayVisible.value = false
 }
 
+function applyEditorMode(newMode: string) {
+  if (!mapEditorRef.value) return
+
+  switch (newMode) {
+    case 'PATH':
+      console.log('start path editing')
+      mapEditorRef.value.startPathEditing?.()
+      break
+    case 'POI':
+      console.log('start POI editing')
+      mapEditorRef.value.startPOIEditing?.()
+      break
+    case 'BEACON':
+      console.log('start beacon editing')
+      mapEditorRef.value.startBeaconEditing?.()
+      break
+    default:
+      mapEditorRef.value.resetEditor?.()
+  }
+
+  console.log(`[Editor Mode] Switched to ${newMode}`)
+}
+
 onMounted(() => {
+  const buildingId = route.params.id
+  if (buildingId) {
+    router.replace(`/building/${buildingId}/floorplan`) // redirect
+  }
+
+  // Reapply mode after mount
+  applyEditorMode(editorMode.value)
   floorId.value = building.value?.floors[0].id as string
+  applyEditorMode('IDLE')
 })
 
 watch(
   editorMode,
-  (newMode) => {
-    if (!mapEditorRef.value) return
-    if (newMode === 'PATH') {
-      mapEditorRef.value.startPathEditing?.() // show nodes
-    } else if (newMode === 'POI') {
-      mapEditorRef.value.startPOIEditing?.() // hide nodes, allow POI editing
-    } else if (newMode === 'BEACON') {
-      mapEditorRef.value.startBeaconEditing?.()
-    } else {
-      // optional: reset all modes
-      mapEditorRef.value.resetEditor?.()
-    }
-
-    console.log(`[Editor Mode] Switched to ${newMode}`)
-  },
+  (newMode) => applyEditorMode(newMode),
   { immediate: true },
 )
 </script>
