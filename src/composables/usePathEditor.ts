@@ -176,7 +176,6 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
 
   return {
     nodeMarkers,
-    connections,
     createNode,
     connectNodes,
     highlightNode,
