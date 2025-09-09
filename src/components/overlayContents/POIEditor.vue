@@ -50,10 +50,10 @@
       </div>
 
       <!-- Action button -->
-      <div class="poi-action">
-        <button type="button" class="btn cancel" @click="deletePOI">Delete</button>
+      <div class="poi-editor-action">
+        <button type="button" class="poi-editor-btn cancel" @click="deletePOI">Delete</button>
         <!-- <button type="button" class="btn ghost">Edit Position</button> -->
-        <button type="button" class="btn save" @click="saveNewPOIInfo">Save</button>
+        <button type="button" class="poi-editor-btn save" @click="saveNewPOIInfo">Save</button>
       </div>
     </div>
 

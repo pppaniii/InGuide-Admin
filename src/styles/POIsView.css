@@ -18,8 +18,21 @@
 }
 
 .poi-list {
-    display: flex;
+    flex: 1;
     flex-direction: column;
+}
+
+.poi-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 20px;
+    border-bottom: 1px solid #6B7280;
+    font-weight: 500;
+}
+
+.poi-item:first-child {
+    padding-top: 10px;
 }
 
 .poi-action {
@@ -27,7 +40,7 @@
 }
 
 .poi-btn {
-    padding: 8px;
+    padding: 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;

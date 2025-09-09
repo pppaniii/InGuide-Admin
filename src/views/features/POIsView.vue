@@ -14,7 +14,7 @@
         <button
           v-for="poi in poiStore.pois"
           :key="poi.id"
-          class="floor-item"
+          class="poi-item"
           @click="openPOIOverlay(poi)"
         >
           {{ poi.name }}

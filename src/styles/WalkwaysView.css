@@ -10,7 +10,6 @@
   flex-direction: column;
   width: 220px;
   color: #2f2f2f;
-  height: 60%;
 }
 
 .walkway-floor-list-container {
@@ -22,7 +21,7 @@
 .walkway-floor-list {
   flex: 1;
   flex-direction: column;
-  border-radius: 10px;
+  /* border-radius: 10px; */
 }
 
 .walkway-floor-item {
@@ -58,7 +57,7 @@
   margin-top: 20px;
 }
 
-.btn {
+.walkway-btn {
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -67,10 +66,10 @@
   color: #fff;
 }
 
-.btn.connect { 
+.walkway-btn.connect { 
   background: #7DA085; 
 }
 
-.btn.delete  { 
+.walkway-btn.delete  { 
   background: #CF4648; 
 }

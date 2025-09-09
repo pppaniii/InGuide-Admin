@@ -44,9 +44,9 @@
       </label>
 
       <!-- Action buttons -->
-      <div class="beacon-action">
-        <button type="button" class="btn delete" @click="deleteBeacon">Delete</button>
-        <button type="button" class="btn save" @click="saveBeacon">Save</button>
+      <div class="beacon-editor-action">
+        <button type="button" class="beacon-editor-btn delete" @click="deleteBeacon">Delete</button>
+        <button type="button" class="beacon-editor-btn save" @click="saveBeacon">Save</button>
       </div>
 
     </div>

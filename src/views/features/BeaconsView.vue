@@ -14,7 +14,7 @@
         <button
           v-for="beacon in beaconStore.beacons"
           :key="beacon.beaconId"
-          class="floor-item"
+          class="beacon-item"
           @click="openBeaconOverlay(beacon)"
         >
           {{ beacon.name || beacon.beaconId }}

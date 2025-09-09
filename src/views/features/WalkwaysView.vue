@@ -23,8 +23,8 @@
 
     <!-- Actions -->
     <div class="walkway-actions">
-      <button class="btn connect" @click="triggerMapConnect">Connect / Add Path</button>
-      <button class="btn delete"  @click="triggerMapDelete">Delete Path</button>
+      <button class="walkway-btn connect" @click="triggerMapConnect">Connect / Add Path</button>
+      <button class="walkway-btn delete"  @click="triggerMapDelete">Delete Path</button>
     </div>
   </div>
 </template>

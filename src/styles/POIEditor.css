@@ -68,15 +68,16 @@
     box-shadow: 0 0 0 3px #A3C4A8;
 }
 
-.poi-action {
+.poi-editor-action {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
     margin-top: 30px;
 }
 
-.btn {
-    width: 80px;
+.poi-editor-btn {
+    width: 90px;
+    padding: 8px;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
@@ -84,10 +85,10 @@
     text-align: center;
 }
 
-.btn.save {
+.poi-editor-btn.save {
     background-color: #7DA085;
 }
 
-.btn.cancel {
+.poi-editor-btn.cancel {
     background-color: #CF4648;
 }

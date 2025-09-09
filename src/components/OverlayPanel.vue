@@ -24,16 +24,17 @@ defineEmits(['close'])
 <style scoped>
 .overlay-panel {
   position: absolute;
-  top: 0;
+  top: 70px;
   right: 0;
   width: 380px;
-  height: 100%;
+  height: 93%;
   background: #D8EAD2;
   box-shadow: -2px 0 8px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   z-index: 2000;
 }
+
 .overlay-header {
   display: flex;
   justify-content: space-between;
@@ -41,11 +42,13 @@ defineEmits(['close'])
   padding: 1rem;
   border-bottom: 1px solid #eee;
 }
+
 .overlay-body {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
 }
+
 .slide-enter-active, .slide-leave-active {
   transition: transform 0.3s ease;
 }
