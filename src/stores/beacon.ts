@@ -14,20 +14,22 @@ export const useBeaconStore = defineStore('beacon', () => {
     beacons.value = null
   }
 
-  function addBeacon(beacon: Beacon) {
-    if (beacons.value !== null) {
-      beacons.value.push(beacon)
-    } else {
-      console.warn('There are no beacons loaded right now.')
-    }
+  function addOrUpdateBeacon(beacon: Beacon) {
+  if (!beacons.value) {
+    console.warn('There are no beacons loaded right now.')
+    return
   }
 
-  function updateBeacon(beaconId: string, newLatLng: [number, number]) {
-    if (beacons.value) {
-      const target = beacons.value.find(b => b.beaconId === beaconId)
-      if (target) target.latLng = newLatLng
-    }
+  const index = beacons.value.findIndex(b => b.beaconId === beacon.beaconId)
+
+  if (index === -1) {
+    // Not found → add new beacon
+    beacons.value.push(beacon)
+  } else {
+    // Already exists → update all fields
+    beacons.value[index] = { ...beacons.value[index], ...beacon }
   }
+}
 
   function deleteBeacon(beaconId: string) {
     if (beacons.value) {
@@ -35,5 +37,5 @@ export const useBeaconStore = defineStore('beacon', () => {
     }
   }
 
-  return { beacons, loadBeacons, clearBeacons, addBeacon, updateBeacon, deleteBeacon }
+  return { beacons, loadBeacons, clearBeacons, addOrUpdateBeacon, deleteBeacon }
 })
