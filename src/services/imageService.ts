@@ -24,8 +24,8 @@ export async function uploadImage(file: File): Promise<string> {
 }
 
 export async function deleteImage(url: string): Promise<void> {
-  await httpClient.delete('/delete-image', {
-    data: { url },
+  await httpClient.delete('/uploadImage', {
+    data: { 'url': url },
   })
 }
 

@@ -12,7 +12,7 @@
           v-model="localPOI.name"
         />
         <font-awesome-icon icon="pencil" />
-      </div>   
+      </div>
       <hr class="section-divider">
 
       <!-- Infomation Edit -->
@@ -38,14 +38,14 @@
           </select>
         </div>
       </label>
-      
+
       <!-- Image -->
       <div class="poi-field">
         <span class="title">Image of Place</span>
-        <ImageGallery 
-          :images="localPOI.images" 
-          @add="handleAddImage" 
-          @remove="handleRemoveImage" 
+        <ImageGallery
+          :images="localPOI.images"
+          @add="handleAddImage"
+          @remove="handleRemoveImage"
         />
       </div>
 
@@ -53,7 +53,7 @@
       <div class="poi-action">
         <button type="button" class="btn cancel" @click="deletePOI">Delete</button>
         <!-- <button type="button" class="btn ghost">Edit Position</button> -->
-        <button type="button" class="btn save" @click="saveNewPOIInfo">Save</button>      
+        <button type="button" class="btn save" @click="saveNewPOIInfo">Save</button>
       </div>
     </div>
 
