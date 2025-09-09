@@ -147,6 +147,7 @@ async function deletePOI(payload: any) {
   const floor = payload.floorId
   const poiId = payload.poiId
   mapEditorRef.value?.removePOI(buildingId, floor, poiId)
+  overlayVisible.value = false
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -159,6 +160,7 @@ async function saveBeaconInfo(payload: any) {
 async function deleteBeacon(payload: any) {
   const { buildingId, floorId, beaconId } = payload
   mapEditorRef.value?.removeBeacon(buildingId, floorId, beaconId)
+  overlayVisible.value = false
 }
 
 onMounted(() => {

@@ -151,6 +151,7 @@ onMounted(async () => {
       const latLng = event.latlng
       const newBeacon: Beacon = {
         beaconId: generateId(),
+        name: (await prompt('Enter New Beacon Name 👇', 'new Beacon')) as string,
         latLng: [latLng.lat, latLng.lng],
       }
 

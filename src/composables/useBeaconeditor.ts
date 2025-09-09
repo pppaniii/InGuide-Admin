@@ -22,11 +22,12 @@ export function useBeaconEditor(
 
   function createBeacon(beacon: Beacon, buildingId: string, floorId: string): Marker {
     const id = beacon.beaconId || generateId()
-    const beaconMarker = createBeaconMarker(beacon.latLng, id, buildingId, floorId)
+    const beaconMarker = createBeaconMarker(beacon.latLng, id, buildingId, floorId, beacon.name)
     beaconMarker.addTo(toRaw(beaconLayer))
 
     const newBeacon: Beacon = {
       beaconId: id,
+      name: beacon.name,
       latLng: beacon.latLng,
     }
 
@@ -57,7 +58,7 @@ export function useBeaconEditor(
           }
         })
         // re-add marker
-        const updatedMarker = createBeaconMarker(beacon.latLng, beacon.beaconId, buildingId, floorId)
+        const updatedMarker = createBeaconMarker(beacon.latLng, beacon.beaconId, buildingId, floorId, beacon.name)
         updatedMarker.addTo(toRaw(beaconLayer))
         beaconStore.addBeacon(beacon)
         console.log(`Beacon ${beacon.beaconId} updated and re-rendered`)
@@ -86,6 +87,7 @@ export function useBeaconEditor(
     id: string,
     buildingId: string,
     floorId: string,
+    name:string
   ) {
     const iconDef: IconDefinition = faMapMarkerAlt
     const svgIcon = createSvgIcon(iconDef)
@@ -130,8 +132,8 @@ export function useBeaconEditor(
 
     beacon.on('click', () => {
       emit('openOverlay', {
-        type: 'Beacon',
-        data: { beaconId: id, latLng: latlng },
+        type: 'BEACON',
+        data: { beaconId: id, name: name, latLng: latlng },
         loading: false, // simpler, no extra fetch
         buildingId,
         floorId,
