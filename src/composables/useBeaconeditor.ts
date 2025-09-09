@@ -32,7 +32,7 @@ export function useBeaconEditor(
     }
 
     addOrUpdateBeacon(buildingId, floorId, newBeacon)
-    beaconStore.addBeacon(beacon)
+    beaconStore.addBeacon(newBeacon)
     return beaconMarker
   }
 
