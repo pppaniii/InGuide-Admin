@@ -37,17 +37,24 @@
           >
         </nav>
 
-        <MapEditor ref="mapEditorRef" :building="building" :floorId="floorId" @openOverlay="handleOpenOverlay"/>
+        <MapEditor
+          ref="mapEditorRef"
+          :building="building"
+          :floorId="floorId"
+          @openOverlay="handleOpenOverlay"
+        />
       </section>
     </main>
   </div>
   <OverlayPanel :visible="overlayVisible" :title="overlayTitle" @close="overlayVisible = false">
     <component
-    :is="overlayComponent"
-    v-bind="overlayProps"
-    @close="overlayVisible = false"
-    @save-poi="savePOIInfo"
-    @delete-poi="deletePOI"
+      :is="overlayComponent"
+      v-bind="overlayProps"
+      @close="overlayVisible = false"
+      @save-poi="savePOIInfo"
+      @delete-poi="deletePOI"
+      @save-beacon="saveBeaconInfo"
+      @delete-beacon="deleteBeacon"
     />
   </OverlayPanel>
 </template>
@@ -77,15 +84,16 @@ const floorId = ref<string | null>(null)
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 
-const editorMode = computed<'FLOOR' | 'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
+const editorMode = computed<'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
   switch (route.name) {
     case 'building-floorplan':
-      return 'FLOOR'
+      return 'IDLE'
     case 'building-walkway':
       return 'PATH'
     case 'building-pois':
       return 'POI'
     case 'building-beacons':
+      console.log('nabbbu')
       return 'BEACON'
     default:
       return 'IDLE'
@@ -97,16 +105,32 @@ function handleFloorIdUpdate(newFloorId: string) {
   floorId.value = newFloorId
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleOpenOverlay({ type, data, loading, buildingId, floorId }: { type: string, data: any, loading: boolean, buildingId: string, floorId: string }) {
+async function handleOpenOverlay({
+  type,
+  data,
+  loading,
+  buildingId,
+  floorId,
+}: {
+  type: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
+  loading: boolean
+  buildingId: string
+  floorId: string
+}) {
   overlayVisible.value = true
   if (type === 'POI') {
     overlayTitle.value = 'Edit POI'
     overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
     overlayProps.value = { poi: data, isLoading: loading, buildingId: buildingId, floorId: floorId }
   }
+  if (type === 'BEACON') {
+    overlayTitle.value = 'Edit Beacon'
+    overlayComponent.value = (await import('@/components/overlayContents/beaconEditor.vue')).default
+    overlayProps.value = { beacon: data, isLoading: loading, buildingId, floorId }
+  }
 }
-
 
 // POI Functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,6 +149,18 @@ async function deletePOI(payload: any) {
   mapEditorRef.value?.removePOI(buildingId, floor, poiId)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function saveBeaconInfo(payload: any) {
+  const { buildingId, floorId, newBeacon } = payload
+  await mapEditorRef.value?.addOrUpdateBeacon(buildingId, floorId, newBeacon)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function deleteBeacon(payload: any) {
+  const { buildingId, floorId, beaconId } = payload
+  mapEditorRef.value?.removeBeacon(buildingId, floorId, beaconId)
+}
+
 onMounted(() => {
   floorId.value = building.value?.floors[0].id as string
 })
@@ -137,6 +173,8 @@ watch(
       mapEditorRef.value.startPathEditing?.() // show nodes
     } else if (newMode === 'POI') {
       mapEditorRef.value.startPOIEditing?.() // hide nodes, allow POI editing
+    } else if (newMode === 'BEACON') {
+      mapEditorRef.value.startBeaconEditing?.()
     } else {
       // optional: reset all modes
       mapEditorRef.value.resetEditor?.()

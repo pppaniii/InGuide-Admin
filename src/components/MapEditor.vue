@@ -1,19 +1,21 @@
 <template>
   <div class="map-wrapper">
     <div class="map-label" v-if="editorState != 'IDLE'">
-        <div v-if="editorState == 'CONNECTING'">
-          <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
-          <a v-else>select a node to connect</a>
-          </div>
-        <div v-if="editorState == 'DELETING'">
-          <a>select a node to delete</a>
-        </div>
-        <div v-if="editorState == 'CREATING'">
-          <a>click anywhere to add a POI</a>
-        </div>
-
+      <div v-if="editorState == 'CONNECTING'">
+        <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
+        <a v-else>select a node to connect</a>
+      </div>
+      <div v-if="editorState == 'DELETING'">
+        <a>select a node to delete</a>
+      </div>
+      <div v-if="editorState == 'CREATING'">
+        <a v-if="editorMode == 'POI'">click anywhere to add a POI</a>
+        <a v-if="editorMode == 'BEACON'">click anywhere to add a Beacon</a>
+      </div>
     </div>
+
     <div ref="mapContainer" id="map"></div>
+
     <div v-if="!floorOverlay" class="map-empty-hint">
       <FontAwesomeIcon :icon="faImage" class="empty-icon" />
       <span>No floor plan available</span>
@@ -28,11 +30,13 @@ import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
 import type { BuildingInfo } from '@/types/types'
 import { usePoiEditor } from '@/composables/usePOIEditor'
+import { useBeaconEditor } from '@/composables/useBeaconeditor'
 import type { POI } from '@/types/poi'
 import { generateId } from '@/utils/generateId'
 import { faImage } from '@fortawesome/free-solid-svg-icons'
+import type { Beacon } from '@/types/beacon'
 
-type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON' | 'FLOOR'
+type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON'
 const editorMode = ref<EditorMode>('IDLE')
 
 type EditorState = 'IDLE' | 'CONNECTING' | 'DELETING' | 'CREATING'
@@ -44,6 +48,7 @@ const map = ref<Map | null>(null)
 const floorOverlay = ref<L.ImageOverlay | null>(null)
 const drawnItems = new FeatureGroup()
 const poiLayer = new LayerGroup()
+const beaconLayer = new LayerGroup()
 
 const props = defineProps<{
   building: BuildingInfo | null
@@ -59,10 +64,9 @@ const emit = defineEmits<{
 
 const buildingBound = ref<[number, number][]>([])
 
-// Import Path Editor composable
+// Path editor
 const {
   nodeMarkers,
-  connections,
   createNode,
   connectNodes,
   highlightNode,
@@ -73,6 +77,7 @@ const {
   pathSetNodeVisibility,
 } = usePathEditor(map as Ref, drawnItems)
 
+// POI editor
 const {
   createPOI,
   loadPOIs,
@@ -83,136 +88,127 @@ const {
   updatePOIDraggables,
 } = usePoiEditor(map as Ref, poiLayer, emit)
 
+// Beacon editor
+const {
+  createBeacon,
+  loadBeacons,
+  addOrUpdateBeacon,
+  updateBeaconPosition,
+  clearBeacons,
+  removeBeacon,
+  updateBeaconDraggables,
+} = useBeaconEditor(map as Ref, beaconLayer, emit)
+
 onMounted(async () => {
-  // Init Map
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
     center: props.building?.NE_bound,
     zoom: 18,
     zoomControl: false,
     attributionControl: false,
   })
-  // toRaw(map.value)?.getContainer().style.setProperty('background-color', '#e0f7fa')
   toRaw(map.value)?.addLayer(drawnItems)
   toRaw(map.value)?.addLayer(poiLayer)
+  toRaw(map.value)?.addLayer(beaconLayer)
   buildingBound.value = [props.building?.SW_bound, props.building?.NE_bound] as [number, number][]
-  console.log(buildingBound.value)
 
-  // Click map to create/connect nodes
+  // Click map
   toRaw(map.value)?.on('click', async (event: L.LeafletMouseEvent) => {
-    if (editorMode.value === 'PATH') {
-      if (editorState.value === 'CONNECTING') {
-        // First node
-        if (nodeMarkers.size === 0) {
-          const firstNode = createNode(event.latlng)
-          selectedNodeId.value = firstNode.options.title as string
-          highlightNode(firstNode, true)
-          return
-        }
-
-        // Connect to existing selected node
-        if (selectedNodeId.value) {
-          const newNodeId = connectNodes(selectedNodeId.value, event.latlng)
-          highlightNode(nodeMarkers.get(selectedNodeId.value)!, false)
-          selectedNodeId.value = null
-          editorState.value = 'IDLE'
-
-          console.log(`Node ${newNodeId} created and connected.`)
-          console.log(connections)
-          savePath(props.building?.id as string, props.floorId as string)
-        }
+    console.log(editorMode.value)
+    console.log(editorState.value)
+    // Create/connect PATH
+    if (editorMode.value === 'PATH' && editorState.value === 'CONNECTING') {
+      if (nodeMarkers.size === 0) {
+        const firstNode = createNode(event.latlng)
+        selectedNodeId.value = firstNode.options.title as string
+        highlightNode(firstNode, true)
+        return
+      }
+      if (selectedNodeId.value) {
+        connectNodes(selectedNodeId.value, event.latlng)
+        highlightNode(nodeMarkers.get(selectedNodeId.value)!, false)
+        selectedNodeId.value = null
+        editorState.value = 'IDLE'
+        savePath(props.building?.id as string, props.floorId as string)
       }
     }
-
-    if (editorMode.value === 'POI') {
-      if (editorState.value === 'CREATING') {
-        const latLng = event.latlng
-        const newLatLng = [latLng.lat, latLng.lng] as [number, number]
-        const buildingId = props.building?.id as string
-        const floorId = props.floorId as string
-        const name = (await prompt('Enter New Point of Interest Name 👇', 'new POI')) as string
-        const newPoi: POI = {
-          id: generateId(),
-          name: name,
-          location: newLatLng,
-          floor: 0,
-          type: '-',
-          images: [],
-          detail: '',
-        }
-        createPOI(newPoi, buildingId, floorId)
-        editorState.value = 'IDLE'
-        console.log(`Editor state is now ${editorState.value}`)
+    // Create POI
+    if (editorMode.value === 'POI' && editorState.value === 'CREATING') {
+      const latLng = event.latlng
+      const newPoi: POI = {
+        id: generateId(),
+        name: (await prompt('Enter New Point of Interest Name 👇', 'new POI')) as string,
+        location: [latLng.lat, latLng.lng],
+        floor: 0,
+        type: '-',
+        images: [],
+        detail: '',
       }
+      createPOI(newPoi, props.building?.id as string, props.floorId as string)
+      editorState.value = 'IDLE'
+    }
+    // Create BEACON
+    if (editorMode.value === 'BEACON' && editorState.value === 'CREATING') {
+      console.log("create beacon!")
+      const latLng = event.latlng
+      const newBeacon: Beacon = {
+        beaconId: generateId(),
+        latLng: [latLng.lat, latLng.lng],
+      }
+
+      createBeacon(newBeacon, props.building?.id as string, props.floorId as string)
+      editorState.value = 'IDLE'
+      console.log(`Beacon created at`, newBeacon.latLng)
     }
   })
 
-  // Handle click on existing nodes
+  // Click nodes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawnItems.on('click', (event: any) => {
     if (!(event.layer instanceof L.Marker)) return
-
     if (editorState.value === 'CONNECTING') {
       const nodeId = event.layer.options.title as string
       if (!selectedNodeId.value) {
         selectedNodeId.value = nodeId
         highlightNode(event.layer, true)
-        console.log(`Selected node ${nodeId}, click map to connect.`)
       }
     }
-
     if (editorState.value === 'DELETING') {
       const nodeId = event.layer.options.title as string
       const success = deleteNode(nodeId)
-      if (success) {
-        savePath(props.building?.id as string, props.floorId as string)
-        console.log(`Node ${nodeId} deleted.`)
-      } else {
-        console.log(`Node ${nodeId} cannot be deleted.`)
-      }
+      if (success) savePath(props.building?.id as string, props.floorId as string)
     }
   })
 })
 
-// Watch for floor change
+// Floor change
 watch(
   () => props.floorId,
   async (newFloorId, oldFloorId) => {
     if (!newFloorId) return
-
-    // Save old floor path
-
     if (oldFloorId != null) {
       clearPath()
       clearPOIs()
+      clearBeacons()
     }
-
-    // 🔄 Remove old overlay if exists
     if (floorOverlay.value) {
       toRaw(map.value)?.removeLayer(toRaw(floorOverlay.value) as L.ImageOverlay)
       floorOverlay.value = null
     }
-
-    // 🖼️ Add new overlay
     const newFloor = props.building?.floors.find((f) => f.id === newFloorId)
     if (newFloor) {
       floorOverlay.value = L.imageOverlay(newFloor.floor_plan_url, buildingBound.value).addTo(
         toRaw(map.value)! as L.Map,
       )
     }
-
-    // Force map to refresh layout
     toRaw(map.value)?.invalidateSize()
 
-    // Load new floor path
     await loadPath(props.building?.id as string, newFloorId)
-
-    if (editorMode.value == 'PATH') {
-      pathSetNodeVisibility(true)
+    if(editorMode.value !== 'PATH'){
+      pathSetNodeVisibility(false)
     }
-
-    if (editorMode.value !== 'BEACON' && editorMode.value !== 'PATH') {
-      await loadPOIs(props.building?.id as string, newFloorId)
-    }
+    await loadPOIs(props.building?.id as string, newFloorId)
+    await loadBeacons(props.building?.id as string, newFloorId)
+    resetEditor()
   },
 )
 
@@ -220,53 +216,67 @@ onBeforeUnmount(() => {
   toRaw(map.value)?.remove()
 })
 
-// Exposed methods to parent
+// ---- Exposed methods ----
+
 function startPathEditing() {
   editorMode.value = editorMode.value !== 'PATH' ? 'PATH' : 'IDLE'
   updatePOIDraggables(false)
-  pathSetNodeVisibility(true) // show nodes only in PATH mode
-  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+  pathSetNodeVisibility(true)
+  updateBeaconDraggables(false)
 }
 
 function startPOIEditing() {
   editorMode.value = editorMode.value !== 'POI' ? 'POI' : 'IDLE'
   updatePOIDraggables(true)
-  pathSetNodeVisibility(false) // hide nodes in POI mode, show in PATH mode
-  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+  pathSetNodeVisibility(false)
+  updateBeaconDraggables(false)
+}
+
+function startBeaconEditing() {
+  editorMode.value = editorMode.value !== 'BEACON' ? 'BEACON' : 'IDLE'
+  updatePOIDraggables(false) // beacons fixed, not draggable
+  pathSetNodeVisibility(false)
+  updateBeaconDraggables(true)
 }
 
 function resetEditor() {
   editorMode.value = 'IDLE'
   updatePOIDraggables(false)
   pathSetNodeVisibility(false)
-  console.log(`[Editor Mode] Switched to ${editorMode.value}`)
+  updateBeaconDraggables(false)
 }
 
-// PATH FUNCTIONS
+// PATH states
 function startConnecting() {
   editorState.value = editorState.value !== 'CONNECTING' ? 'CONNECTING' : 'IDLE'
-  console.log(`[Editor State] Mode changed to: ${editorState.value}`)
 }
 function startDeleting() {
   editorState.value = editorState.value !== 'DELETING' ? 'DELETING' : 'IDLE'
-  console.log(`[Editor State] Mode changed to: ${editorState.value}`)
 }
 function startCreatingPOI() {
   editorState.value = editorState.value !== 'CREATING' ? 'CREATING' : 'IDLE'
-  console.log(`[Editor State] Mode changed to: ${editorState.value}`)
+}
+function startCreatingBeacon() {
+  editorState.value = editorState.value !== 'CREATING' ? 'CREATING' : 'IDLE'
 }
 
 defineExpose({
   startPathEditing,
   startPOIEditing,
+  startBeaconEditing,
   resetEditor,
   startConnecting,
   startDeleting,
   startCreatingPOI,
-  // POIs
+  startCreatingBeacon,
+  // POI
   addOrUpdatePOI,
   updatePOIPosition,
   removePOI,
+  // Beacon
+  addOrUpdateBeacon,
+  updateBeaconPosition,
+  removeBeacon,
 })
 </script>
 
