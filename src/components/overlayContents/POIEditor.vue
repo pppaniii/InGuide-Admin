@@ -68,7 +68,6 @@ import type { POI } from '@/types/poi'
 import { defineProps, ref, watch, defineEmits } from 'vue' // Make sure to import defineEmits
 import ImageGallery from '../ImageGallery.vue'
 import imageService from '@/services/imageService'
-import '@/styles/POIEditor.css'
 
 interface POIEditorProps {
   poi: POI | null // will be null initially if loading
@@ -124,7 +123,7 @@ async function handleAddImage(file: File) {
 async function handleRemoveImage(index: number) {
   const url = localPOI.value?.images[index] as string
   try {
-    await imageService.deleteImage(url) // 🔥 remove from backend
+    await imageService.deleteImage(url) // remove from backend
     localPOI.value?.images.splice(index, 1) // remove locally
   } catch (err) {
     console.error('Failed to delete image:', err)
@@ -132,3 +131,5 @@ async function handleRemoveImage(index: number) {
   }
 }
 </script>
+
+<style src="../../styles/POIEditor.css"></style>

@@ -11,22 +11,41 @@
           placeholder="Beacon Name"
           v-model="localBeacon.name"
         />
+        <font-awesome-icon icon="pencil" />
       </div>
       <hr class="section-divider">
 
-      <!-- Coordinates -->
+      <!-- Coordinates edit -->
       <label class="beacon-field info">
-        <span class="title">Coordinates</span>
-        <div class="coord-inputs">
-          <input type="number" step="0.000001" v-model="localBeacon.latLng[0]" placeholder="Latitude" />
-          <input type="number" step="0.000001" v-model="localBeacon.latLng[1]" placeholder="Longitude" />
+        <span class="coor-title">Coordinates</span>
+
+        <div class="coor-inputs">
+          <label class="coor-item">
+            <span class="coor-type">Latitude: </span>
+            <input 
+              type="number" 
+              step="0.000001" 
+              v-model="localBeacon.latLng[0]" 
+              placeholder="Latitude" 
+              class="beacon-input-field"
+            />
+          </label>
+          <label class="coor-item">
+            <span class="coor-type">Longitude: </span>
+            <input 
+              type="number" 
+              step="0.000001" 
+              v-model="localBeacon.latLng[1]" 
+              placeholder="Longitude" 
+              class="beacon-input-field"
+            />
+          </label>
         </div>
       </label>
 
       <!-- Action buttons -->
       <div class="beacon-action">
-        <button type="button" class="btn cancel" @click="$emit('close')">Cancel</button>
-        <button type="button" class="btn danger" @click="deleteBeacon">Delete</button>
+        <button type="button" class="btn delete" @click="deleteBeacon">Delete</button>
         <button type="button" class="btn save" @click="saveBeacon">Save</button>
       </div>
 
@@ -78,79 +97,4 @@ function deleteBeacon() {
 }
 </script>
 
-<style scoped>
-.title-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.name-input {
-  flex: 1;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.section-divider {
-  border: none;
-  border-bottom: 1px solid #ddd;
-  margin: 0.5rem 0;
-}
-
-.beacon-field {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.coord-inputs {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.coord-inputs input {
-  flex: 1;
-  padding: 6px 10px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.beacon-action {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.btn {
-  padding: 6px 12px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-}
-
-.btn.save {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn.cancel {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn.danger {
-  background-color: red;
-  color: white;
-}
-
-.empty {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-}
-</style>
+<style src="../../styles/beaconEditor.css"></style>

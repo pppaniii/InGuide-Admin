@@ -1,0 +1,91 @@
+.beacon-edit {
+    padding: 16px 18px;
+    color: #2f2f2f;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 20px;
+}
+
+.name-input {
+    width: 100%;
+    background-color: transparent;
+    outline: none;
+    font-weight: 500;
+}
+
+.beacon-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.beacon-field.info {
+    margin-top: 20px;
+}
+
+.coor-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.coor-inputs {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    gap: 10px;
+}
+
+.coor-item {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    justify-content: space-between;
+    padding-right: 20px;
+}
+
+.coor-type {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.beacon-input-field {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: #FEFBF6;
+    outline: none;
+    color: #2f2f2f;
+}
+
+.beacon-input-field:focus {
+    box-shadow: 0 0 0 1px #A3C4A8;
+}
+
+.beacon-action {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn {
+    width: 80px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+}
+
+.btn.delete {
+    background-color: #CF4648;
+}
+
+.btn.save {
+    background-color: #7DA085;
+}
