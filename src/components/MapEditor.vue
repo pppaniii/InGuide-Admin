@@ -9,7 +9,8 @@
           <a>Select a node to delete</a>
         </div>
         <div v-if="editorState == 'CREATING'">
-          <a>Click anywhere to add a POI</a>
+          <a v-if="editorMode=='POI'">Click anywhere to add a POI</a>
+          <a v-else-if="editorMode=='BEACON'">Click anywhere to add a Beacon</a>
         </div>
     </div>
 
