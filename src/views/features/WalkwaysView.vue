@@ -12,7 +12,7 @@
         v-for="f in building?.floors ?? []"
         :key="f.id"
         class="walkway-floor-item"
-        :class="{ active: f.id === floorId.value }"
+        :class="{ active: f.id === floorId }"
       >
         {{ f.floor }}
       </div>
@@ -24,10 +24,6 @@
       <button class="btn delete"  @click="triggerMapDelete">Delete Path</button>
     </div>
   </div>
-  
-  <!-- <button @click="triggerMapConnect" style="background-color: aliceblue">Connect/Add Path</button>
-  <button @click="triggerMapDelete" style="background-color: aliceblue">Delete Path</button>
-  <p>temporary change floor buttons:</p> -->
 </template>
 
 <script setup lang="ts">
