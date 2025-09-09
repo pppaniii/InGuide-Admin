@@ -8,6 +8,7 @@
           :floorId="floorId"
           :building="building"
           @update:floorId="handleFloorIdUpdate"
+          @openOverlay="handleOpenOverlay"
         />
       </RouterView>
     </AdminSidePanel>

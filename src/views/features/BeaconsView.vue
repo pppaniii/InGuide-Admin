@@ -10,14 +10,14 @@
   <div class="beacon-panel">
     <!-- Beacon List -->
     <div class="beacon-list">
-      <div
-        v-for="beacon in beacons"
+      <button
+        v-for="beacon in beaconStore.beacons"
         :key="beacon.beaconId"
         class="beacon-item"
+        @click="openBeaconOverlay(beacon)"
       >
-        <span>{{ beacon.beaconId }}</span>
-        <span>({{ beacon.latLng[0].toFixed(5) }}, {{ beacon.latLng[1].toFixed(5) }})</span>
-      </div>
+        {{ beacon.name || beacon.beaconId }}
+      </button>
     </div>
 
     <!-- Action Button -->
@@ -36,19 +36,31 @@
 import type { Building } from '@/types/types'
 import MapEditor from '@/components/MapEditor.vue'
 import type { Beacon } from '@/types/beacon'
+import { useBeaconStore } from '@/stores/beacon';
 
+const beaconStore = useBeaconStore()
 const props = defineProps<{
   building: Building | null
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
   floorId: string
-  beacons?: Beacon[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'openOverlay', payload: { type: string; data: Beacon | null; loading: boolean; buildingId: string; floorId: string }): void
 }>()
 
 function triggerAddBeacon() {
   props.mapEditorRef?.startCreatingBeacon()
 }
 
+function openBeaconOverlay(beacon: Beacon) {
+  const buildingId = props.building?.id ?? ''
+  const floorId = props.floorId
+
+  // Open overlay in loading state
+  emit('openOverlay', { type: 'BEACON', data: beacon, loading: true, buildingId, floorId })
+}
 </script>
 
 <style src="@/styles/BeaconsView.css"></style>

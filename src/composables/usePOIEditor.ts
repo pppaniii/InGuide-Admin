@@ -46,6 +46,7 @@ export function usePoiEditor(
       detail: poi.detail,
     }
     addOrUpdatePOI(buildingId, floorId, newPOI)
+    poisStore.addPOI(newPOI)
     return poiMarker
   }
 
@@ -79,7 +80,6 @@ export function usePoiEditor(
           floorId,
         )
         updatedMarker.addTo(toRaw(poiLayer))
-        poisStore.addPOI(poi)
         console.log(`POI ${poi.id} updated and re-rendered`)
       })
       .catch((err) => {

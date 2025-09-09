@@ -32,6 +32,7 @@ export function useBeaconEditor(
     }
 
     addOrUpdateBeacon(buildingId, floorId, newBeacon)
+    beaconStore.addBeacon(beacon)
     return beaconMarker
   }
 
@@ -60,7 +61,6 @@ export function useBeaconEditor(
         // re-add marker
         const updatedMarker = createBeaconMarker(beacon.latLng, beacon.beaconId, buildingId, floorId, beacon.name)
         updatedMarker.addTo(toRaw(beaconLayer))
-        beaconStore.addBeacon(beacon)
         console.log(`Beacon ${beacon.beaconId} updated and re-rendered`)
       })
       .catch((err) => {
