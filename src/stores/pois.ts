@@ -13,13 +13,28 @@ export const usePOIStore = defineStore('poi', () => {
     pois.value = null
   }
 
-  function addPOI(poi: POI) {
-    if(pois.value !== null) {
-      pois.value?.push(poi)
+  function addOrUpdatePOI(poi: POI) {
+    if (!pois.value) {
+      console.warn('There are no POIs loaded right now.')
+      return
+    }
+
+    const index = pois.value.findIndex(p => p.id === poi.id)
+
+    if (index === -1) {
+      // New POI → add it
+      pois.value.push(poi)
     } else {
-      console.log('There is no POI loaded right now T-T')
+      // Existing POI → update it (merge fields)
+      pois.value[index] = { ...pois.value[index], ...poi }
     }
   }
 
-  return { pois, loadPOIs, clearPOIs, addPOI }
+  function deletePOI(poiId: string) {
+    if (pois.value) {
+      pois.value = pois.value.filter(p => p.id !== poiId)
+    }
+  }
+
+  return { pois, loadPOIs, clearPOIs, addOrUpdatePOI, deletePOI }
 })

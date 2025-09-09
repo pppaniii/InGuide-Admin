@@ -46,7 +46,6 @@ export function usePoiEditor(
       detail: poi.detail,
     }
     addOrUpdatePOI(buildingId, floorId, newPOI)
-    poisStore.addPOI(newPOI)
     return poiMarker
   }
 
@@ -80,6 +79,7 @@ export function usePoiEditor(
           floorId,
         )
         updatedMarker.addTo(toRaw(poiLayer))
+        poisStore.addOrUpdatePOI(poi)
         console.log(`POI ${poi.id} updated and re-rendered`)
       })
       .catch((err) => {
@@ -211,6 +211,7 @@ export function usePoiEditor(
             poiLayer.removeLayer(layer)
           }
         })
+        poisStore.deletePOI(poiId)
         console.log(`POI ${poiId} deleted successfully`)
       })
       .catch((err) => {
