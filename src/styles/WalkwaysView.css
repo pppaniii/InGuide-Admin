@@ -1,44 +1,44 @@
 .walkway-title {
-    font-weight: 600;
-    font-size: 18px;
-    height: 90px;
-    color: #2f2f2f;
+  font-weight: 600;
+  font-size: 18px;
+  height: 90px;
+  color: #2f2f2f;
 }
 
 .walkway-panel {
-    display: flex;
-    flex-direction: column;
-    width: 220px;
-    color: #2f2f2f;
-    height: 60%;
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  color: #2f2f2f;
+  height: 60%;
+}
+
+.walkway-floor-list-container {
+  background: #D8EAD2;
+  border-radius: 10px;
+  height: 300px;
 }
 
 .walkway-floor-list {
-    flex: 1;
-    flex-direction: column;
-    background: #D8EAD2;
-    border-radius: 10px;
-    height: 300px;
+  flex: 1;
+  flex-direction: column;
+  border-radius: 10px;
 }
 
 .walkway-floor-item {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 8px 20px;
-    border-bottom: 1px solid #6B7280;
-    font-weight: 500;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 20px;
+  border-bottom: 1px solid #6B7280;
+  font-weight: 500;
 }
 
 .walkway-floor-item:first-child {
-    padding-top: 10px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+  padding-top: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
-
-/* .walkway-floor-item:last-child { 
-    border-bottom: none; 
-} */
 
 .walkway-floor-item.active {
   background-color: #7DA085;
@@ -68,9 +68,9 @@
 }
 
 .btn.connect { 
-    background: #7DA085; 
+  background: #7DA085; 
 }
 
 .btn.delete  { 
-    background: #CF4648; 
+  background: #CF4648; 
 }

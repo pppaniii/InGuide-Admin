@@ -9,25 +9,22 @@
 
   <div class="beacon-panel">
     <!-- Beacon List -->
-    <div class="beacon-list">
-      <button
-        v-for="beacon in beaconStore.beacons"
-        :key="beacon.beaconId"
-        class="beacon-item"
-        @click="openBeaconOverlay(beacon)"
-      >
-        {{ beacon.name || beacon.beaconId }}
-      </button>
+    <div class="beacon-list-container">
+      <div class="beacon-list">
+        <button
+          v-for="beacon in beaconStore.beacons"
+          :key="beacon.beaconId"
+          class="floor-item"
+          @click="openBeaconOverlay(beacon)"
+        >
+          {{ beacon.name || beacon.beaconId }}
+        </button>
+      </div>
     </div>
 
     <!-- Action Button -->
-    <div>
-      <button
-        @click="triggerAddBeacon"
-        class="beacon-btn add"
-      >
-        Add Beacon
-      </button>
+    <div class="beacon-action">
+      <button @click="triggerAddBeacon" class="beacon-btn add">Add Beacon</button>
     </div>
   </div>
 </template>

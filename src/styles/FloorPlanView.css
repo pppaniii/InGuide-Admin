@@ -10,14 +10,17 @@
     flex-direction: column;
     width: 220px;
     color: #2f2f2f;
-    height: 60%;
+}
+
+.floor-list-container {
+    background: #D8EAD2;
+    border-radius: 10px;
+    height: 300px;
 }
 
 .floor-list {
     flex: 1;
     flex-direction: column;
-    background: #D8EAD2;
-    border-radius: 10px;
 }
 
 .floor-item {
@@ -64,11 +67,7 @@
     color: #fff;
 }
 
-.floor-btn.add {
-    background: #7DA085;
-}
-
-.floor-btn.edit {
+.floor-btn.add, .edit {
     background: #7DA085;
 }
 

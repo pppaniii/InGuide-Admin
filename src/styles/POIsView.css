@@ -1,6 +1,7 @@
 .poi-title {
     font-weight: 600;
     font-size: 18px;
+    height: 90px;
     color: #2f2f2f;
 }
 
@@ -10,10 +11,19 @@
     width: 220px;
 }
 
+.poi-list-container {
+    background: #D8EAD2;
+    border-radius: 10px;
+    height: 300px;
+}
+
 .poi-list {
     display: flex;
-    width: 220px;
-    
+    flex-direction: column;
+}
+
+.poi-action {
+    margin-top: 20px;
 }
 
 .poi-btn {

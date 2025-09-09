@@ -91,7 +91,7 @@ export function useBeaconEditor(
   ) {
     const iconDef: IconDefinition = faMapMarkerAlt
     const svgIcon = createSvgIcon(iconDef)
-    const color = '#007BFF' // fixed color for all beacons
+    const color = '#9BD6EF' 
 
     const icon = L.divIcon({
       className: 'custom-beacon-icon',

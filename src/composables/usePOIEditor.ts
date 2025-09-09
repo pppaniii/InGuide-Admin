@@ -111,7 +111,7 @@ export function usePoiEditor(
   ) {
     const iconDef = poiIconMap[poiType] || faCircle
     const svgIcon = createSvgIcon(iconDef)
-    const color = poiColorMap[poiType] || '#FDA172'
+    const color = poiColorMap[poiType] || '#A3C4A8'
 
     const icon = L.divIcon({
       className: 'custom-poi-icon',
@@ -249,9 +249,9 @@ const poiIconMap: Record<string, IconDefinition> = {
 }
 
 const poiColorMap: Record<string, string> = {
-  Restroom: '#FF0000',
-  'Lecture Room': '#00FF00',
-  'Computer Lab': '#0000FF',
+  Restroom: '#B39B4C',
+  'Lecture Room': '#708CC2',
+  'Computer Lab': '#7866A3',
 }
 
 function createSvgIcon(icon: IconDefinition, size = 18, color = 'white') {

@@ -2,6 +2,28 @@
     font-weight: 600;
     font-size: 18px;
     color: #2f2f2f;
+    height: 90px;
+}
+
+.beacon-panel {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+}
+
+.beacon-list-container {
+    background: #D8EAD2;
+    border-radius: 10px;
+    height: 300px;
+}
+
+.beacon-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.beacon-action {
+    margin-top: 20px;
 }
 
 .beacon-btn {

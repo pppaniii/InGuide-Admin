@@ -8,16 +8,18 @@
   </div>
   <div class="floor-panel">
     <!-- Floor List -->
-    <div class="floor-list">
-      <button
-        v-for="floor in props.building.floors"
-        :key="floor.id"
-        class="floor-item"
-        :class="{ active: floor.id === props.floorId }"
-        @click="emit('update:floorId', floor.id)"
-        >
-          {{ floor.floor }}
-      </button>
+    <div class="floor-list-container">
+      <div class="floor-list">
+        <button
+          v-for="floor in props.building.floors"
+          :key="floor.id"
+          class="floor-item"
+          :class="{ active: floor.id === props.floorId }"
+          @click="emit('update:floorId', floor.id)"
+          >
+            {{ floor.floor }}
+        </button>
+      </div>
     </div>
 
     <!-- Action Buttons -->

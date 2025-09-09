@@ -7,15 +7,18 @@
   </div>
   <div class="walkway-panel">
     <!-- show floor list, cant switch floor -->
-    <div class="walkway-floor-list">
-      <div
-        v-for="f in building?.floors ?? []"
-        :key="f.id"
-        class="walkway-floor-item"
-        :class="{ active: f.id === floorId }"
-      >
-        {{ f.floor }}
-      </div>
+    <div class="walkway-floor-list-container">
+      <div class="walkway-floor-list">
+        <div
+          v-for="f in building?.floors ?? []"
+          :key="f.id"
+          class="walkway-floor-item"
+          :class="{ active: f.id === floorId }"
+        >
+          {{ f.floor }}
+        </div>
+    </div>
+
     </div>
 
     <!-- Actions -->

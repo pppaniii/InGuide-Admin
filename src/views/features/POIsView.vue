@@ -9,19 +9,21 @@
 
   <div class="poi-panel">
     <!-- POI List -->
-    <div class="poi-list">
-      <button
-        v-for="poi in poiStore.pois"
-        :key="poi.id"
-        class="floor-item"
-        @click="openPOIOverlay(poi)"
-      >
-        {{ poi.name }}
-      </button>
+    <div class="poi-list-container">
+      <div class="poi-list">
+        <button
+          v-for="poi in poiStore.pois"
+          :key="poi.id"
+          class="floor-item"
+          @click="openPOIOverlay(poi)"
+        >
+          {{ poi.name }}
+        </button>
+      </div>
     </div>
 
     <!-- Action Button -->
-    <div>
+    <div class="poi-action">
       <button @click="triggerAddPOI" class="poi-btn add">Add POI</button>
     </div>
   </div>
