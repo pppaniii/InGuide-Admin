@@ -1,17 +1,16 @@
 <template>
   <div class="map-wrapper">
     <div class="map-label" v-if="editorState != 'IDLE'">
-      <div v-if="editorState == 'CONNECTING'">
-        <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
-        <a v-else>select a node to connect</a>
-      </div>
-      <div v-if="editorState == 'DELETING'">
-        <a>select a node to delete</a>
-      </div>
-      <div v-if="editorState == 'CREATING'">
-        <a v-if="editorMode == 'POI'">click anywhere to add a POI</a>
-        <a v-if="editorMode == 'BEACON'">click anywhere to add a Beacon</a>
-      </div>
+        <div v-if="editorState == 'CONNECTING'">
+          <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
+          <a v-else>Select a node to connect</a>
+          </div>
+        <div v-if="editorState == 'DELETING'">
+          <a>Select a node to delete</a>
+        </div>
+        <div v-if="editorState == 'CREATING'">
+          <a>Click anywhere to add a POI</a>
+        </div>
     </div>
 
     <div ref="mapContainer" id="map"></div>
