@@ -13,7 +13,7 @@
           v-for="f in building?.floors ?? []"
           :key="f.id"
           class="walkway-floor-item"
-          :class="{ active: f.id === floorId }"
+          :class="{ active: f.id === floorId.value }"
         >
           {{ f.floor }}
         </div>
@@ -30,12 +30,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Building } from '@/types/types'
+import type { BuildingInfo } from '@/types/types'
 import MapEditor from '@/components/MapEditor.vue'
 import type { Ref } from 'vue'
 
 const props = defineProps<{
-  building: Building | null
+  building: BuildingInfo | null
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
   floorId: Ref<string>

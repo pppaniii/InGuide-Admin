@@ -143,7 +143,8 @@ onMounted(async () => {
         images: [],
         detail: '',
       }
-      createPOI(newPoi, props.building?.id as string, props.floorId as string)
+      const newPOI = createPOI(newPoi, props.building?.id as string, props.floorId as string)
+      newPOI.dragging?.enable()
       editorState.value = 'IDLE'
     }
     // Create BEACON
@@ -156,7 +157,8 @@ onMounted(async () => {
         latLng: [latLng.lat, latLng.lng],
       }
 
-      createBeacon(newBeacon, props.building?.id as string, props.floorId as string)
+      const beacon =  createBeacon(newBeacon, props.building?.id as string, props.floorId as string)
+      await beacon.dragging?.enable()
       editorState.value = 'IDLE'
       console.log(`Beacon created at`, newBeacon.latLng)
     }
