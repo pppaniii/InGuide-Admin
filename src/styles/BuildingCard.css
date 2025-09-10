@@ -52,7 +52,7 @@
 
 .card-name { 
     font-weight: 700; 
-    color: #3d5949; 
+    color: #847C74; 
     height: 3rem;
     display: flex;
     align-items: center;
@@ -63,4 +63,5 @@
     border: 0; 
     cursor: pointer; 
     font-size: 16px; 
+    color: #847C74;
 }
