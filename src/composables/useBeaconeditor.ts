@@ -91,7 +91,7 @@ export function useBeaconEditor(
   ) {
     const iconDef: IconDefinition = faMapMarkerAlt
     const svgIcon = createSvgIcon(iconDef)
-    const color = '#9BD6EF' 
+    const color = '#9BD6EF'
 
     const icon = L.divIcon({
       className: 'custom-beacon-icon',
@@ -170,6 +170,25 @@ export function useBeaconEditor(
     })
   }
 
+  async function findBlutoothDevice() {
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: "ESP32" }], // match multiple ESP32s (e.g., ESP32-1, ESP32-2)
+        optionalServices: ['12345678-1234-1234-1234-1234567890ab']
+      });
+
+      console.log("Chosen Device Name:", device.name);
+      console.log("Device ID:", device.id);
+
+      const server = await device.gatt?.connect();
+      console.log("Connected to:", device.name);
+
+      return server
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
   return {
     createBeacon,
     loadBeacons,
@@ -178,6 +197,7 @@ export function useBeaconEditor(
     clearBeacons,
     removeBeacon,
     updateBeaconDraggables,
+    findBlutoothDevice,
   }
 }
 
