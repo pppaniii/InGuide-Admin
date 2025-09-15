@@ -49,14 +49,21 @@
         />
       </div>
 
-      <!-- Recommended toggle -->
-      <label class="poi-field">
-        <span class="title">Recommended</span>
-        <div class="select-wrap">
-          <input type="checkbox" v-model="localPOI.recommended" />
-          <span>Show as Recommended</span>
+      <div class="toggle-row" role="switch" :aria-checked="!!localPOI?.recommended">
+        <div class="toggle-text">
+          <div class="title">Recommended</div>
+          <div class="toggle-sub">Show as recommended place</div>
         </div>
-      </label>
+
+        <label class="switch">
+          <input
+            type="checkbox"
+            v-model="localPOI.recommended"
+            aria-label="Toggle recommended"
+          />
+          <span class="slider"></span>
+        </label>
+      </div>
 
       <!-- Action button -->
       <div class="poi-editor-action">

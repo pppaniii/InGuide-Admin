@@ -1,5 +1,5 @@
 .poi-edit {
-    padding: 16px 18px;
+    padding: 10px 10px;
     color: #2f2f2f;
 }
 
@@ -91,4 +91,68 @@
 
 .poi-editor-btn.cancel {
     background-color: #CF4648;
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    /* background-color: #fff; */
+    margin-top: 10px;
+}
+
+.toggle-sub {
+    font-size: 14px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 62px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: var(--switch-off, #F5F5F5);
+    border-radius: 100px;
+    transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+/* circle toggle */
+.slider::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--switch-knob, #fff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    transition: transform 160ms ease;
+}
+
+/* ON state */
+.switch input:checked + .slider {
+    background: var(--brand, #7DA085);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(28px);
+}
+
+.switch:has(input:focus-visible) .slider {
+    box-shadow: 0 0 0 3px var(--brand-weak);
 }
