@@ -44,6 +44,7 @@ export function usePoiEditor(
       type: type,
       images: poi.images,
       detail: poi.detail,
+      recommended: poi.recommended ?? false,
     }
     addOrUpdatePOI(buildingId, floorId, newPOI)
     return poiMarker

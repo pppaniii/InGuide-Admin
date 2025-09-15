@@ -92,10 +92,36 @@ async function deletePOI(buildingId: string, floorId: string, poiId: string) {
   }
 }
 
+async function setRecommended(
+  buildingId: string,
+  floorId: string,
+  poiId: string,
+  value: boolean
+) {
+  const res = await httpClient.patch(
+    `/POIs/${buildingId}/${floorId}/${poiId}/recommended`,
+    { value }
+  )
+  return res.data
+}
+
+async function getRecommendedOnFloor(buildingId: string, floorId: string): Promise<POI[]> {
+  const res = await httpClient.get(`/POIs/${buildingId}/${floorId}/recommended`)
+  return res.data
+}
+
+async function getRecommendedInBuilding(buildingId: string): Promise<POI[]> {
+  const res = await httpClient.get(`/POIs/${buildingId}/recommended`)
+  return res.data
+}
+
 export default {
   getPOIs,
   getPOIById,
   addOrUpdatePOI,
   updatePOI,
   deletePOI,
+  setRecommended,
+  getRecommendedOnFloor,
+  getRecommendedInBuilding
 }

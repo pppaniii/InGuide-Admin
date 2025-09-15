@@ -49,6 +49,15 @@
         />
       </div>
 
+      <!-- Recommended toggle -->
+      <label class="poi-field">
+        <span class="title">Recommended</span>
+        <div class="select-wrap">
+          <input type="checkbox" v-model="localPOI.recommended" />
+          <span>Show as Recommended</span>
+        </div>
+      </label>
+
       <!-- Action button -->
       <div class="poi-editor-action">
         <button type="button" class="poi-editor-btn cancel" @click="deletePOI">Delete</button>
