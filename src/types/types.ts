@@ -1,6 +1,8 @@
 export interface Building {
   id: string;
   name: string;
+  NE_bound?: [number, number]
+  SW_bound?: [number, number]
 }
 
 export interface BuildingInfo {

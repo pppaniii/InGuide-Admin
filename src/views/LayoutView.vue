@@ -69,6 +69,7 @@ import OverlayPanel from '@/components/OverlayPanel.vue'
 import { computed, onMounted, ref, watch, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
+// import { convertEditorToGraph } from '@/utils/pathConverter'
 
 const router = useRouter()
 const route = useRoute()

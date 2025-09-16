@@ -238,6 +238,7 @@ function updatePOIDraggables(isDraggable: boolean) {
     clearPOIs,
     removePOI,
     updatePOIDraggables,
+    poisStore,
   }
 }
 
