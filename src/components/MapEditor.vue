@@ -1,17 +1,17 @@
 <template>
   <div class="map-wrapper">
     <div class="map-label" v-if="editorState != 'IDLE'">
-        <div v-if="editorState == 'CONNECTING'">
-          <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
-          <a v-else>Select a node to connect</a>
-          </div>
-        <div v-if="editorState == 'DELETING'">
-          <a>Select a node to delete</a>
-        </div>
-        <div v-if="editorState == 'CREATING'">
-          <a v-if="editorMode=='POI'">Click anywhere to add a POI</a>
-          <a v-else-if="editorMode=='BEACON'">Click anywhere to add a Beacon</a>
-        </div>
+      <div v-if="editorState == 'CONNECTING'">
+        <a v-if="nodeMarkers.size == 0 || selectedNodeId">click anywhere to add/connect a path</a>
+        <a v-else>Select a node to connect</a>
+      </div>
+      <div v-if="editorState == 'DELETING'">
+        <a>Select a node to delete</a>
+      </div>
+      <div v-if="editorState == 'CREATING'">
+        <a v-if="editorMode == 'POI'">Click anywhere to add a POI</a>
+        <a v-else-if="editorMode == 'BEACON'">Click anywhere to add a Beacon</a>
+      </div>
     </div>
 
     <div ref="mapContainer" id="map"></div>
@@ -35,6 +35,10 @@ import type { POI } from '@/types/poi'
 import { generateId } from '@/utils/generateId'
 import { faImage } from '@fortawesome/free-solid-svg-icons'
 import type { Beacon } from '@/types/beacon'
+import { convertEditorToGraph } from '@/utils/pathConverter'
+import { mergePOIsIntoGraph } from '@/utils/mergeGraph'
+import { usePOIStore } from '@/stores/pois'
+import navigationGraphService from '@/services/navigationGraphService'
 
 type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON'
 const editorMode = ref<EditorMode>('IDLE')
@@ -61,12 +65,14 @@ const emit = defineEmits<{
     payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
   ): void
 }>()
+const poiStore = usePOIStore()
 
 const buildingBound = ref<[number, number][]>([])
 
 // Path editor
 const {
   nodeMarkers,
+  connections,
   createNode,
   connectNodes,
   highlightNode,
@@ -86,6 +92,7 @@ const {
   clearPOIs,
   removePOI,
   updatePOIDraggables,
+  poisStore,
 } = usePoiEditor(map as Ref, poiLayer, emit)
 
 // Beacon editor
@@ -149,7 +156,7 @@ onMounted(async () => {
     }
     // Create BEACON
     if (editorMode.value === 'BEACON' && editorState.value === 'CREATING') {
-      console.log("create beacon!")
+      console.log('create beacon!')
       const latLng = event.latlng
       const newBeacon: Beacon = {
         beaconId: generateId(),
@@ -157,7 +164,7 @@ onMounted(async () => {
         latLng: [latLng.lat, latLng.lng],
       }
 
-      const beacon =  createBeacon(newBeacon, props.building?.id as string, props.floorId as string)
+      const beacon = createBeacon(newBeacon, props.building?.id as string, props.floorId as string)
       await beacon.dragging?.enable()
       editorState.value = 'IDLE'
       console.log(`Beacon created at`, newBeacon.latLng)
@@ -181,6 +188,8 @@ onMounted(async () => {
       if (success) savePath(props.building?.id as string, props.floorId as string)
     }
   })
+
+  setInterval(generateAndSaveNavigationGraph, 1000)
 })
 
 // Floor change
@@ -206,7 +215,7 @@ watch(
     toRaw(map.value)?.invalidateSize()
 
     await loadPath(props.building?.id as string, newFloorId)
-    if(editorMode.value !== 'PATH'){
+    if (editorMode.value !== 'PATH') {
       pathSetNodeVisibility(false)
     }
     await loadPOIs(props.building?.id as string, newFloorId)
@@ -216,8 +225,28 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  toRaw(map.value)?.remove()
+  try {
+    toRaw(map.value)?.remove()
+  } catch (e) {
+    console.log(e)
+  }
 })
+
+async function generateAndSaveNavigationGraph() {
+  try {
+    if (nodeMarkers == undefined) return
+    if (connections == undefined) return
+    if (poisStore.pois == null) return
+    const graph = convertEditorToGraph(nodeMarkers, connections)
+    const mergedGraph = mergePOIsIntoGraph(graph, poiStore.pois as POI[])
+    const buildingId: string = props.building?.id as string
+    const floorId: string = props.floorId as string
+    await navigationGraphService.saveNavigationGraph(buildingId, floorId, mergedGraph)
+    // console.log("nav graph generated and save")
+  } catch (error) {
+    console.log('generate and save Nav Graph', error)
+  }
+}
 
 // ---- Exposed methods ----
 
@@ -272,6 +301,9 @@ defineExpose({
   startDeleting,
   startCreatingPOI,
   startCreatingBeacon,
+  connectNodes,
+  nodeMarkers,
+  connections,
   // POI
   addOrUpdatePOI,
   updatePOIPosition,

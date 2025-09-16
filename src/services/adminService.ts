@@ -1,4 +1,4 @@
-import type { BuildingInfo } from '@/types/types'
+import type {  BuildingInfo } from '@/types/types'
 import axios from 'axios'
 
 const httpClient = axios.create({
@@ -19,10 +19,12 @@ async function listBuildings(): Promise<BuildingInfo[]> {
   }
 }
 
-async function createBuilding(name: string) {
+async function createBuilding(name: string, NE: [number, number], SW: [number, number]) {
   try {
     const response = await httpClient.post('/buildings', {
       name: name,
+      NE_bound: NE,
+      SW_bound: SW
     })
     const newBuilding = response.data.building
     return newBuilding

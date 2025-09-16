@@ -55,9 +55,9 @@ export const useBuildings = defineStore('buildings', {
       }
     },
 
-    async create(name: string): Promise<void> {
+    async create(name: string, NE: [number, number], SW: [number, number]): Promise<void> {
       try {
-        const b = await AdminService.createBuilding(name)
+        const b = await AdminService.createBuilding(name, NE, SW)
         // avoid dupes if list was already updated elsewhere
         if (!this.byId(b.id)) this.items.push(b)
       } catch (e: unknown) {

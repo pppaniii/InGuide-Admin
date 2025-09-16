@@ -36,9 +36,26 @@ function close() {
   background-color: white;
   border-radius: 16px;
   padding: 24px;
-  position: relative;
+  position: relative; /* keep relative so child absolute works */
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-  width: 20rem;
+  width: 30rem;
 }
+
+.popup-content > button {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.popup-content > button:hover {
+  color: #000;
+}
+
 
 </style>
