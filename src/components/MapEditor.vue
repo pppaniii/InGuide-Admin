@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, toRaw, watch, type Ref } from 'vue'
-import L, { Map, FeatureGroup, LayerGroup } from 'leaflet'
+import L, { Map, FeatureGroup, LayerGroup, ImageOverlay } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
 import type { BuildingInfo } from '@/types/types'
@@ -39,6 +39,8 @@ import { convertEditorToGraph } from '@/utils/pathConverter'
 import { mergePOIsIntoGraph } from '@/utils/mergeGraph'
 import { usePOIStore } from '@/stores/pois'
 import navigationGraphService from '@/services/navigationGraphService'
+import { useFloorEditor } from '@/composables/useFloorEditor'
+import { useBuildings } from '@/stores/buildings'
 
 type EditorMode = 'PATH' | 'POI' | 'IDLE' | 'BEACON'
 const editorMode = ref<EditorMode>('IDLE')
@@ -49,7 +51,7 @@ const selectedNodeId = ref<string | null>(null)
 
 const mapContainer = ref<HTMLElement | null>(null)
 const map = ref<Map | null>(null)
-const floorOverlay = ref<L.ImageOverlay | null>(null)
+const floorOverlay = ref<ImageOverlay | null>(null)
 const drawnItems = new FeatureGroup()
 const poiLayer = new LayerGroup()
 const beaconLayer = new LayerGroup()
@@ -59,12 +61,13 @@ const props = defineProps<{
   floorId: string | null
 }>()
 const emit = defineEmits<{
-  (
-    e: 'openOverlay',
+  (e: 'openOverlay',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
-  ): void
+  ): void,
+  (e: 'update:floorId', newFloorId: string): void
 }>()
+const buildingStore = useBuildings()
 const poiStore = usePOIStore()
 
 const buildingBound = ref<[number, number][]>([])
@@ -105,6 +108,13 @@ const {
   removeBeacon,
   updateBeaconDraggables,
 } = useBeaconEditor(map as Ref, beaconLayer, emit)
+
+// Floor editor
+const floorEditor = useFloorEditor(
+  map as Ref,
+  floorOverlay as Ref<ImageOverlay>,
+  buildingBound.value,
+)
 
 onMounted(async () => {
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
@@ -208,9 +218,9 @@ watch(
     }
     const newFloor = props.building?.floors.find((f) => f.id === newFloorId)
     if (newFloor) {
-      floorOverlay.value = L.imageOverlay(newFloor.floor_plan_url, buildingBound.value).addTo(
-        toRaw(map.value)! as L.Map,
-      )
+      const overlay = L.imageOverlay(newFloor.floor_plan_url, buildingBound.value)
+      overlay.addTo(toRaw(map.value)! as L.Map)
+      floorOverlay.value = overlay
     }
     toRaw(map.value)?.invalidateSize()
 
@@ -278,6 +288,32 @@ function resetEditor() {
   updateBeaconDraggables(false)
 }
 
+function addFloorPlan(){
+  floorEditor.addFloorPlan()
+}
+
+function updateFloorPlan(imgUrl: string) {
+  if (props.floorId)
+    floorEditor.updateFloorPlan(props.floorId, imgUrl)
+  else
+    console.error("there is no selected floor")
+}
+
+function deleteFloorPlan() {
+  if (props.floorId){
+    const floor = buildingStore.floorById(props.floorId)
+    if (floor){
+      floorEditor.deleteFloorPlan(props.floorId)
+      const newFloor = floor.floor - 1 > 0 ? floor.floor - 1 : 1
+      const newFloorId =  buildingStore.current?.floors[newFloor - 1].id
+      if (newFloorId) emit('update:floorId', newFloorId)
+      else console.error("There is an error getting a new floor ID")
+    }
+
+  } else
+    console.error("there is no selected floor")
+}
+
 // PATH states
 function startConnecting() {
   editorState.value = editorState.value !== 'CONNECTING' ? 'CONNECTING' : 'IDLE'
@@ -312,6 +348,10 @@ defineExpose({
   addOrUpdateBeacon,
   updateBeaconPosition,
   removeBeacon,
+  // Floors
+  addFloorPlan,
+  updateFloorPlan,
+  deleteFloorPlan,
 })
 </script>
 

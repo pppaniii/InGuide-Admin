@@ -4,11 +4,13 @@
       <RouterView v-slot="{ Component }">
         <component
           :is="Component"
+          :selectFloorFile="selectFloorFile"
           :mapEditorRef="mapEditorRef"
           :floorId="floorId"
           :building="building"
           @update:floorId="handleFloorIdUpdate"
           @openOverlay="handleOpenOverlay"
+          @openPopUp="showPopup = true"
         />
       </RouterView>
     </AdminSidePanel>
@@ -40,9 +42,11 @@
 
         <MapEditor
           ref="mapEditorRef"
+          :building-info="store"
           :building="building"
           :floorId="floorId"
           @openOverlay="handleOpenOverlay"
+          @update:floorId="handleFloorIdUpdate"
         />
       </section>
     </main>
@@ -58,6 +62,29 @@
       @delete-beacon="deleteBeacon"
     />
   </OverlayPanel>
+  <PopUpWindow name="popup" v-model:visible="showPopup">
+    <div
+      class="upload-box"
+      @dragover.prevent
+      @dragenter.prevent
+      @drop.prevent="useFileSelector.handleDrop"
+      @click="useFileSelector.triggerFileInput"
+    >
+      <p v-if="!useFileSelector.file">Drag & Drop your file here, or click to select</p>
+      <p v-else>Selected: {{ useFileSelector.file.value?.name }}</p>
+      <input
+        ref="fileInput"
+        type="file"
+        accept="image/*"
+        class="hidden-input"
+        @change="useFileSelector.handleChange"
+      />
+    </div>
+    <div class="actions" v-if="useFileSelector.file">
+      <button @click="updateFloorPlan">Confirm</button>
+      <button @click="useFileSelector.clearFile">Cancel</button>
+    </div>
+  </PopUpWindow>
 </template>
 
 <script setup lang="ts">
@@ -69,7 +96,12 @@ import OverlayPanel from '@/components/OverlayPanel.vue'
 import { computed, onMounted, ref, watch, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
+import PopUpWindow from '@/components/PopUpWindow.vue'
+import useFileSelector from '@/composables/useFileSelector'
+import imageService from '@/services/imageService'
 // import { convertEditorToGraph } from '@/utils/pathConverter'
+
+const showPopup = ref(true)
 
 const router = useRouter()
 const route = useRoute()
@@ -103,11 +135,33 @@ const editorMode = computed<'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
   }
 })
 
-// Handler function to update floorId
+function applyEditorMode(newMode: string) {
+  if (!mapEditorRef.value) return
+
+  switch (newMode) {
+    case 'PATH':
+      console.log('start path editing')
+      mapEditorRef.value.startPathEditing?.()
+      break
+    case 'POI':
+      console.log('start POI editing')
+      mapEditorRef.value.startPOIEditing?.()
+      break
+    case 'BEACON':
+      console.log('start beacon editing')
+      mapEditorRef.value.startBeaconEditing?.()
+      break
+    default:
+      mapEditorRef.value.resetEditor?.()
+  }
+
+  console.log(`[Editor Mode] Switched to ${newMode}`)
+}
+
+// Handler function to update floorId (general functions)
 function handleFloorIdUpdate(newFloorId: string) {
   floorId.value = newFloorId
 }
-
 async function handleOpenOverlay({
   type,
   data,
@@ -144,7 +198,6 @@ async function savePOIInfo(payload: any) {
   const newPOI = payload.newPoi
   await mapEditorRef.value?.addOrUpdatePOI(buildingId, floor, newPOI)
 }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function deletePOI(payload: any) {
   const buildingId = payload.buildingId
@@ -154,12 +207,12 @@ async function deletePOI(payload: any) {
   overlayVisible.value = false
 }
 
+// Beacon Functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function saveBeaconInfo(payload: any) {
   const { buildingId, floorId, newBeacon } = payload
   await mapEditorRef.value?.addOrUpdateBeacon(buildingId, floorId, newBeacon)
 }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function deleteBeacon(payload: any) {
   const { buildingId, floorId, beaconId } = payload
@@ -167,27 +220,22 @@ async function deleteBeacon(payload: any) {
   overlayVisible.value = false
 }
 
-function applyEditorMode(newMode: string) {
-  if (!mapEditorRef.value) return
-
-  switch (newMode) {
-    case 'PATH':
-      console.log('start path editing')
-      mapEditorRef.value.startPathEditing?.()
-      break
-    case 'POI':
-      console.log('start POI editing')
-      mapEditorRef.value.startPOIEditing?.()
-      break
-    case 'BEACON':
-      console.log('start beacon editing')
-      mapEditorRef.value.startBeaconEditing?.()
-      break
-    default:
-      mapEditorRef.value.resetEditor?.()
-  }
-
-  console.log(`[Editor Mode] Switched to ${newMode}`)
+// Floor Functions
+async function updateFloorPlan() {
+  if (useFileSelector.file.value) {
+    const file: File = useFileSelector.file.value
+    const imgUrl = await imageService.uploadImage(file)
+    mapEditorRef.value?.updateFloorPlan(imgUrl)
+  } else console.error("cannot update floor")
+}
+const selectFloorFile = (): Promise<File | null> => {
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = () => resolve(input.files?.[0] ?? null)
+    input.click()
+  })
 }
 
 onMounted(() => {
@@ -202,11 +250,7 @@ onMounted(() => {
   applyEditorMode('IDLE')
 })
 
-watch(
-  editorMode,
-  (newMode) => applyEditorMode(newMode),
-  { immediate: true },
-)
+watch(editorMode, (newMode) => applyEditorMode(newMode), { immediate: true })
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
@@ -234,5 +278,25 @@ watch(
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.upload-box {
+  border: 2px dashed #aaa;
+  padding: 2rem;
+  text-align: center;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.upload-box:hover {
+  border-color: #666;
+}
+.hidden-input {
+  display: none;
+}
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 </style>

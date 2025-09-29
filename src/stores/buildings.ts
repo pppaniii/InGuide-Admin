@@ -1,78 +1,152 @@
-// mock API
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import AdminService from '@/services/adminService'
-import type { BuildingInfo } from '@/types/types'
+import AdminService from '@/services/buildingService'
+import type { BuildingInfo, Floor } from '@/types/types'
+import imageService from '@/services/imageService'
+import { generateId } from '@/utils/generateId'
+import floorService from '@/services/floorService'
 
-export const useBuildings = defineStore('buildings', {
-  state: () => ({
-    items: [] as BuildingInfo[],
-    current: null as BuildingInfo | null,
-    loading: false,
-    error: '' as string | undefined,
-  }),
-  getters: {
-    byId: (state) => (id: string) => state.items.find((b) => b.id === id),
+export const useBuildings = defineStore('buildings', () => {
+  const items = ref<BuildingInfo[]>([])
+  const current = ref<BuildingInfo | null>(null)
+  const loading = ref(false)
+  const error = ref<string | undefined>('')
 
-    floorById: (state) => (buildingId: string, floorId: string) => {
-      const building = state.items.find((b) => b.id === buildingId)
-      return building?.floors.find((f) => f.id === floorId) ?? null
-    },
-  },
-  actions: {
-    setCurrent(b: BuildingInfo | null): void {
-      this.current = b
-    },
+  // --- getters ---
+  const byId = (id: string) => items.value.find((b) => b.id === id)
 
-    async fetch(): Promise<void> {
-      this.loading = true
-      this.error = undefined
-      try {
-        this.items = await AdminService.listBuildings()
-      } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : String(e)
-      } finally {
-        this.loading = false
+  const floorById = (floorId: string, buildingId?: string) => {
+    const effectiveBuildingId = buildingId ?? current.value?.id
+    if (!effectiveBuildingId) return null
+    const building = items.value.find((b) => b.id === effectiveBuildingId)
+    return building?.floors.find((f) => f.id === floorId) ?? null
+  }
+
+  // --- actions ---
+  function setCurrent(b: BuildingInfo | null) {
+    current.value = b
+  }
+
+  async function fetch() {
+    loading.value = true
+    error.value = undefined
+    try {
+      items.value = await AdminService.listBuildings()
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchById(id: string) {
+    const cached = byId(id)
+    if (cached) {
+      current.value = cached
+      return cached
+    }
+    try {
+      const b = await AdminService.getBuilding(id)
+      current.value = b ?? null
+      if (b && !byId(id)) items.value.push(b)
+      return b ?? null
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : String(e)
+      current.value = null
+      return null
+    }
+  }
+
+  async function create(name: string, NE: [number, number], SW: [number, number]) {
+    try {
+      const b = await AdminService.createBuilding(name, NE, SW)
+      if (!byId(b.id)) items.value.push(b)
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : String(e)
+    }
+  }
+
+  async function remove(id: string) {
+    try {
+      await AdminService.deleteBuilding(id)
+      items.value = items.value.filter((b) => b.id !== id)
+      if (current.value?.id === id) current.value = null
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : String(e)
+    }
+  }
+
+  async function addFloorPlan(img: File | string, buildingId?: string) {
+    const effectiveBuildingId = buildingId ?? current.value?.id
+    if (!effectiveBuildingId) {
+      console.warn('No building ID available to add a floor plan')
+      return
+    }
+    try {
+      if (typeof img !== 'string') {
+        img = await imageService.uploadImage(img as File)
       }
-    },
-
-    async fetchById(id: string): Promise<BuildingInfo | null> {
-      const cached = this.byId(id)
-      if (cached) {
-        this.current = cached
-        return cached
+      const nextFloorNumber = current.value ? current.value.floors.length + 1 : 1
+      const newFloor: Floor = {
+        id: generateId(),
+        floor: nextFloorNumber,
+        floor_plan_url: img as string,
       }
+      current.value?.floors.push(newFloor)
+      floorService.addFloorPlan(newFloor, effectiveBuildingId)
+    } catch (error) {
+      console.log('Error adding a floor', error)
+    }
+  }
 
-      try {
-        const b = await AdminService.getBuilding(id)
-        this.current = b ?? null
-        // optionally cache it locally so later pages have it
-        if (b && !this.byId(id)) this.items.push(b)
-        return b ?? null
-      } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : String(e)
-        this.current = null
-        return null
-      }
-    },
+  async function removeFloorPlan(floorId: string, buildingId?: string) {
+    const effectiveBuildingId = buildingId ?? current.value?.id
+    if (!effectiveBuildingId) {
+      console.warn('No building ID available to add a floor plan')
+      return
+    }
+    try {
+      if (current.value)
+        current.value.floors = current.value.floors.filter((floor) => floor.id !== floorId)
+      floorService.removeFloorPlan(floorId, effectiveBuildingId)
+    } catch (error) {
+      console.log('Error deleting a floor', error)
+    }
+  }
 
-    async create(name: string, NE: [number, number], SW: [number, number]): Promise<void> {
-      try {
-        const b = await AdminService.createBuilding(name, NE, SW)
-        // avoid dupes if list was already updated elsewhere
-        if (!this.byId(b.id)) this.items.push(b)
-      } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : String(e)
+  async function updateFloorPlan(floorId: string, imgUrl: string, buildingId?: string) {
+    const effectiveBuildingId = buildingId ?? current.value?.id
+    if (!effectiveBuildingId) {
+      console.warn('No building ID available to add a floor plan')
+      return
+    }
+    try {
+      const floor = current.value?.floors.find((floor) => floor.id === floorId)
+      if (floor) {
+        floor.floor_plan_url = imgUrl
       }
-    },
+      floorService.updateFloorPlan(floorId, imgUrl, effectiveBuildingId)
+      return imgUrl
+    } catch (error) {
+      console.log('Error updating a floor', error)
+    }
+  }
 
-    async remove(id: string): Promise<void> {
-      try {
-        await AdminService.deleteBuilding(id)
-        this.items = this.items.filter((b) => b.id !== id)
-        if (this.current?.id === id) this.current = null
-      } catch (e: unknown) {
-        this.error = e instanceof Error ? e.message : String(e)
-      }
-    },
-  },
+  return {
+    items,
+    current,
+    loading,
+    error,
+    byId,
+    floorById,
+    setCurrent,
+    fetch,
+    fetchById,
+    create,
+    remove,
+
+    addFloorPlan,
+    removeFloorPlan,
+    updateFloorPlan,
+  }
 })

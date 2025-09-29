@@ -17,6 +17,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible'])
 function close() {
+  console.log("close pop")
   emit('update:visible', false)
 }
 </script>

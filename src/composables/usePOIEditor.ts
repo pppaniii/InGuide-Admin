@@ -34,7 +34,7 @@ export function usePoiEditor(
     const poiMarker = createPOIMarker(poi.location, type, id, poi.name, buildingId, floorId)
     poiMarker.addTo(toRaw(poiLayer))
 
-    const floorNum = buildingStore.floorById(buildingId, floorId)?.floor as number
+    const floorNum = buildingStore.floorById(floorId, buildingId)?.floor as number
     // SAVE POI
     const newPOI: POI = {
       id: id,
