@@ -25,12 +25,17 @@ function clearFile() {
   file.value = null
 }
 
+function isSelectedFile(): boolean {
+  return file.value != null
+}
+
 export default {
   file,
   triggerFileInput,
   handleDrop,
   handleChange,
   clearFile,
+  isSelectedFile,
 }
 
 

@@ -61,16 +61,15 @@ const props = defineProps<{
   floorId: string | null
 }>()
 const emit = defineEmits<{
-  (e: 'openOverlay',
+  (
+    e: 'openOverlay',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
-  ): void,
+  ): void
   (e: 'update:floorId', newFloorId: string): void
 }>()
 const buildingStore = useBuildings()
 const poiStore = usePOIStore()
-
-const buildingBound = ref<[number, number][]>([])
 
 // Path editor
 const {
@@ -110,11 +109,7 @@ const {
 } = useBeaconEditor(map as Ref, beaconLayer, emit)
 
 // Floor editor
-const floorEditor = useFloorEditor(
-  map as Ref,
-  floorOverlay as Ref<ImageOverlay>,
-  buildingBound.value,
-)
+const floorEditor = useFloorEditor(map as Ref)
 
 onMounted(async () => {
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
@@ -126,7 +121,6 @@ onMounted(async () => {
   toRaw(map.value)?.addLayer(drawnItems)
   toRaw(map.value)?.addLayer(poiLayer)
   toRaw(map.value)?.addLayer(beaconLayer)
-  buildingBound.value = [props.building?.SW_bound, props.building?.NE_bound] as [number, number][]
 
   // Click map
   toRaw(map.value)?.on('click', async (event: L.LeafletMouseEvent) => {
@@ -146,6 +140,7 @@ onMounted(async () => {
         selectedNodeId.value = null
         editorState.value = 'IDLE'
         savePath(props.building?.id as string, props.floorId as string)
+        generateAndSaveNavigationGraph()
       }
     }
     // Create POI
@@ -162,6 +157,7 @@ onMounted(async () => {
       }
       const newPOI = createPOI(newPoi, props.building?.id as string, props.floorId as string)
       newPOI.dragging?.enable()
+      generateAndSaveNavigationGraph()
       editorState.value = 'IDLE'
     }
     // Create BEACON
@@ -195,11 +191,12 @@ onMounted(async () => {
     if (editorState.value === 'DELETING') {
       const nodeId = event.layer.options.title as string
       const success = deleteNode(nodeId)
-      if (success) savePath(props.building?.id as string, props.floorId as string)
+      if (success) {
+        savePath(props.building?.id as string, props.floorId as string)
+        generateAndSaveNavigationGraph()
+      }
     }
   })
-
-  setInterval(generateAndSaveNavigationGraph, 1000)
 })
 
 // Floor change
@@ -212,17 +209,8 @@ watch(
       clearPOIs()
       clearBeacons()
     }
-    if (floorOverlay.value) {
-      toRaw(map.value)?.removeLayer(toRaw(floorOverlay.value) as L.ImageOverlay)
-      floorOverlay.value = null
-    }
-    const newFloor = props.building?.floors.find((f) => f.id === newFloorId)
-    if (newFloor) {
-      const overlay = L.imageOverlay(newFloor.floor_plan_url, buildingBound.value)
-      overlay.addTo(toRaw(map.value)! as L.Map)
-      floorOverlay.value = overlay
-    }
-    toRaw(map.value)?.invalidateSize()
+
+    floorEditor.renderFloorPlan(newFloorId)
 
     await loadPath(props.building?.id as string, newFloorId)
     if (editorMode.value !== 'PATH') {
@@ -288,30 +276,26 @@ function resetEditor() {
   updateBeaconDraggables(false)
 }
 
-function addFloorPlan(){
+function addFloorPlan() {
   floorEditor.addFloorPlan()
 }
 
 function updateFloorPlan(imgUrl: string) {
-  if (props.floorId)
-    floorEditor.updateFloorPlan(props.floorId, imgUrl)
-  else
-    console.error("there is no selected floor")
+  if (props.floorId) floorEditor.updateFloorPlan(props.floorId, imgUrl)
+  else console.error('there is no selected floor')
 }
 
 function deleteFloorPlan() {
-  if (props.floorId){
+  if (props.floorId) {
     const floor = buildingStore.floorById(props.floorId)
-    if (floor){
+    if (floor) {
       floorEditor.deleteFloorPlan(props.floorId)
       const newFloor = floor.floor - 1 > 0 ? floor.floor - 1 : 1
-      const newFloorId =  buildingStore.current?.floors[newFloor - 1].id
+      const newFloorId = buildingStore.current?.floors[newFloor - 1].id
       if (newFloorId) emit('update:floorId', newFloorId)
-      else console.error("There is an error getting a new floor ID")
+      else console.error('There is an error getting a new floor ID')
     }
-
-  } else
-    console.error("there is no selected floor")
+  } else console.error('there is no selected floor')
 }
 
 // PATH states

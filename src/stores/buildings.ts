@@ -132,6 +132,10 @@ export const useBuildings = defineStore('buildings', () => {
     }
   }
 
+  function getCurrentBuildingBound(): [number, number][] {
+    return [current.value?.SW_bound ?? [1,0], current.value?.NE_bound ?? [0, 1]]
+  }
+
   return {
     items,
     current,
@@ -144,7 +148,7 @@ export const useBuildings = defineStore('buildings', () => {
     fetchById,
     create,
     remove,
-
+    getCurrentBuildingBound,
     addFloorPlan,
     removeFloorPlan,
     updateFloorPlan,

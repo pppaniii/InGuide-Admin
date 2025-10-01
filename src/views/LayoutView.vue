@@ -68,9 +68,9 @@
       @dragover.prevent
       @dragenter.prevent
       @drop.prevent="useFileSelector.handleDrop"
-      @click="useFileSelector.triggerFileInput"
+      @click="useFileSelector.triggerFileInput()"
     >
-      <p v-if="!useFileSelector.file">Drag & Drop your file here, or click to select</p>
+      <p v-if="!useFileSelector.isSelectedFile()">Drag & Drop your file here, or click to select</p>
       <p v-else>Selected: {{ useFileSelector.file.value?.name }}</p>
       <input
         ref="fileInput"
@@ -80,7 +80,7 @@
         @change="useFileSelector.handleChange"
       />
     </div>
-    <div class="actions" v-if="useFileSelector.file">
+    <div class="actions" v-if="useFileSelector.isSelectedFile()">
       <button @click="updateFloorPlan">Confirm</button>
       <button @click="useFileSelector.clearFile">Cancel</button>
     </div>
@@ -101,7 +101,7 @@ import useFileSelector from '@/composables/useFileSelector'
 import imageService from '@/services/imageService'
 // import { convertEditorToGraph } from '@/utils/pathConverter'
 
-const showPopup = ref(true)
+const showPopup = ref(false)
 
 const router = useRouter()
 const route = useRoute()
@@ -226,7 +226,11 @@ async function updateFloorPlan() {
     const file: File = useFileSelector.file.value
     const imgUrl = await imageService.uploadImage(file)
     mapEditorRef.value?.updateFloorPlan(imgUrl)
-  } else console.error("cannot update floor")
+  } else {
+    console.error('cannot update floor')
+  }
+  useFileSelector.clearFile()
+  showPopup.value = false
 }
 const selectFloorFile = (): Promise<File | null> => {
   return new Promise((resolve) => {
@@ -243,7 +247,8 @@ onMounted(() => {
   if (buildingId) {
     router.replace(`/building/${buildingId}/floorplan`) // redirect
   }
-
+  useFileSelector.clearFile()
+  console.log('file: ', useFileSelector.file)
   // Reapply mode after mount
   applyEditorMode(editorMode.value)
   floorId.value = building.value?.floors[0].id as string

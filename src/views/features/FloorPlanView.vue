@@ -45,7 +45,7 @@ const props = defineProps<{
 }>()
 
 const addFloorPlan = () => {
-  emit("openPopUp")
+  props.mapEditorRef?.addFloorPlan()
 }
 
 const updateFloorPlan = async () => {
