@@ -102,13 +102,25 @@ export const useBuildings = defineStore('buildings', () => {
   async function removeFloorPlan(floorId: string, buildingId?: string) {
     const effectiveBuildingId = buildingId ?? current.value?.id
     if (!effectiveBuildingId) {
-      console.warn('No building ID available to add a floor plan')
+      console.warn('No building ID available to remove a floor plan')
       return
     }
     try {
-      if (current.value)
-        current.value.floors = current.value.floors.filter((floor) => floor.id !== floorId)
+      // Call server to remove
       floorService.removeFloorPlan(floorId, effectiveBuildingId)
+
+      if (current.value) {
+        // Remove locally
+        current.value.floors = current.value.floors.filter((floor) => floor.id !== floorId)
+
+        // Reindex floors (sort first to be safe)
+        current.value.floors = current.value.floors
+          .sort((a, b) => a.floor - b.floor)
+          .map((f, idx) => ({
+            ...f,
+            floor: idx + 1, // reassign sequential floor numbers
+          }))
+      }
     } catch (error) {
       console.log('Error deleting a floor', error)
     }
@@ -133,7 +145,10 @@ export const useBuildings = defineStore('buildings', () => {
   }
 
   function getCurrentBuildingBound(): [number, number][] {
-    return [current.value?.SW_bound ?? [1,0], current.value?.NE_bound ?? [0, 1]]
+    if (!current.value?.SW_bound || !current.value?.NE_bound) {
+      return []
+    }
+    return [current.value.SW_bound, current.value.NE_bound]
   }
 
   return {

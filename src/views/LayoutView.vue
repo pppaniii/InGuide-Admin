@@ -92,10 +92,16 @@
       <p>delete ก่?</p>
       <div class="actions">
         <button @click="deleteFloorPlan">Confirm</button>
-        <button @click="() => {
-          showPopup = false
-          popUpContent = 'NAN'
-        }">Cancel</button>
+        <button
+          @click="
+            () => {
+              showPopup = false
+              popUpContent = 'NAN'
+            }
+          "
+        >
+          Cancel
+        </button>
       </div>
     </div>
     <d v-else>
@@ -248,6 +254,7 @@ async function deleteBeacon(payload: any) {
 
 // Floor Functions
 async function updateFloorPlan() {
+  showPopup.value = false
   if (useFileSelector.file.value) {
     const file: File = useFileSelector.file.value
     const imgUrl = await imageService.uploadImage(file)
@@ -256,7 +263,6 @@ async function updateFloorPlan() {
     console.error('cannot update floor')
   }
   useFileSelector.clearFile()
-  showPopup.value = false
   popUpContent.value = 'NAN'
 }
 function deleteFloorPlan() {
