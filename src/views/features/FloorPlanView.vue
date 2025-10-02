@@ -38,7 +38,6 @@ import MapEditor from '@/components/MapEditor.vue'
 
 const props = defineProps<{
   building: BuildingInfo
-  selectFloorFile: () => Promise<File | null>
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
   floorId: string
@@ -50,20 +49,17 @@ const addFloorPlan = () => {
 
 const updateFloorPlan = async () => {
   if (!props.floorId || !props.mapEditorRef) return
-  emit("openPopUp")
-  // Ask parent to select a file
-
-  // Continue logic in child
-  // const imgUrl = await imageService.uploadImage(file)
-  // await props.mapEditorRef.updateFloorPlan(props.floorId, imgUrl)
+  emit('setPopUpContent', { content: 'UPDATE'})
+  emit('openPopUp')
 }
 
 const deleteFloorPlan = () => {
-
-
+  if (!props.floorId || !props.mapEditorRef) return
+  emit('setPopUpContent', { content: 'DELETE'})
+  emit('openPopUp')
 }
 
-const emit = defineEmits(['update:floorId', 'openPopUp'])
+const emit = defineEmits(['update:floorId', 'openPopUp', 'setPopUpContent'])
 </script>
 
 <style src="../../styles/FloorPlanView.css"></style>

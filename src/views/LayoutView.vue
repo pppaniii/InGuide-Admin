@@ -4,13 +4,13 @@
       <RouterView v-slot="{ Component }">
         <component
           :is="Component"
-          :selectFloorFile="selectFloorFile"
           :mapEditorRef="mapEditorRef"
           :floorId="floorId"
           :building="building"
           @update:floorId="handleFloorIdUpdate"
           @openOverlay="handleOpenOverlay"
           @openPopUp="showPopup = true"
+          @setPopUpContent="setPopUpContent"
         />
       </RouterView>
     </AdminSidePanel>
@@ -63,27 +63,45 @@
     />
   </OverlayPanel>
   <PopUpWindow name="popup" v-model:visible="showPopup">
-    <div
-      class="upload-box"
-      @dragover.prevent
-      @dragenter.prevent
-      @drop.prevent="useFileSelector.handleDrop"
-      @click="useFileSelector.triggerFileInput()"
-    >
-      <p v-if="!useFileSelector.isSelectedFile()">Drag & Drop your file here, or click to select</p>
-      <p v-else>Selected: {{ useFileSelector.file.value?.name }}</p>
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        class="hidden-input"
-        @change="useFileSelector.handleChange"
-      />
+    <div v-if="popUpContent == 'UPDATE'">
+      <div
+        class="upload-box"
+        @dragover.prevent
+        @dragenter.prevent
+        @drop.prevent="useFileSelector.handleDrop"
+        @click="selectFloorFile"
+      >
+        <p v-if="!useFileSelector.isSelectedFile()">
+          Drag & Drop your file here, or click to select
+        </p>
+        <p v-else>Selected: {{ useFileSelector.file.value?.name }}</p>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          class="hidden-input"
+          @change="useFileSelector.handleChange"
+        />
+      </div>
+      <div class="actions" v-if="useFileSelector.isSelectedFile()">
+        <button @click="updateFloorPlan">Confirm</button>
+        <button @click="useFileSelector.clearFile">Cancel</button>
+      </div>
     </div>
-    <div class="actions" v-if="useFileSelector.isSelectedFile()">
-      <button @click="updateFloorPlan">Confirm</button>
-      <button @click="useFileSelector.clearFile">Cancel</button>
+    <div v-else-if="popUpContent == 'DELETE'">
+      <p>delete ก่?</p>
+      <div class="actions">
+        <button @click="deleteFloorPlan">Confirm</button>
+        <button @click="() => {
+          showPopup = false
+          popUpContent = 'NAN'
+        }">Cancel</button>
+      </div>
     </div>
+    <d v-else>
+      <p>Something went wrong.....</p>
+      <p>please close this pop-up and try again</p>
+    </d>
   </PopUpWindow>
 </template>
 
@@ -101,6 +119,8 @@ import useFileSelector from '@/composables/useFileSelector'
 import imageService from '@/services/imageService'
 // import { convertEditorToGraph } from '@/utils/pathConverter'
 
+type PopUpContent = 'UPDATE' | 'DELETE' | 'NAN'
+const popUpContent = ref<PopUpContent>('NAN')
 const showPopup = ref(false)
 
 const router = useRouter()
@@ -156,6 +176,12 @@ function applyEditorMode(newMode: string) {
   }
 
   console.log(`[Editor Mode] Switched to ${newMode}`)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function setPopUpContent(payload: any) {
+  const { content } = payload
+  popUpContent.value = content ?? 'NAN'
 }
 
 // Handler function to update floorId (general functions)
@@ -231,15 +257,24 @@ async function updateFloorPlan() {
   }
   useFileSelector.clearFile()
   showPopup.value = false
+  popUpContent.value = 'NAN'
 }
-const selectFloorFile = (): Promise<File | null> => {
-  return new Promise((resolve) => {
+function deleteFloorPlan() {
+  mapEditorRef.value?.deleteFloorPlan()
+  showPopup.value = false
+  popUpContent.value = 'NAN'
+}
+
+// trigger select floor file
+const selectFloorFile = async () => {
+  const file: File | null = await new Promise((resolve) => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.onchange = () => resolve(input.files?.[0] ?? null)
     input.click()
   })
+  if (file) useFileSelector.validateAndSetFile(file)
 }
 
 onMounted(() => {
