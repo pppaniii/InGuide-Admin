@@ -22,6 +22,7 @@ export function usePoiEditor(
     e: 'openOverlay',
     payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
   ) => void,
+  onGraphUpdate: () => void, // <-- 1. Accept the callback
 ) {
   const buildingStore = useBuildings()
   const poisStore = usePOIStore()
@@ -54,7 +55,16 @@ export function usePoiEditor(
     try {
       const loadedPOIs = await poiService.getPOIs(buildingId, floorId)
       loadedPOIs.forEach((p) => {
-        createPOI(p, buildingId, floorId)
+        // Create marker but don't re-save or trigger graph update on load
+        const poiMarker = createPOIMarker(
+          p.location,
+          p.type,
+          p.id,
+          p.name,
+          buildingId,
+          floorId,
+        )
+        poiMarker.addTo(toRaw(poiLayer))
       })
       poisStore.loadPOIs(loadedPOIs)
     } catch (error) {
@@ -81,6 +91,7 @@ export function usePoiEditor(
         )
         updatedMarker.addTo(toRaw(poiLayer))
         poisStore.addOrUpdatePOI(poi)
+        onGraphUpdate() // <-- 2. Call callback on update
         console.log(`POI ${poi.id} updated and re-rendered`)
       })
       .catch((err) => {
@@ -160,6 +171,7 @@ export function usePoiEditor(
       const newLatLng = (e.target as L.Marker).getLatLng()
       try {
         await poiService.updatePOI(buildingId, floorId, id, [newLatLng.lat, newLatLng.lng])
+        onGraphUpdate() // <-- 2. Call callback on drag end
         console.log(`POI ${id} updated`)
       } catch (error) {
         console.log('error patching new location', error)
@@ -213,6 +225,7 @@ export function usePoiEditor(
           }
         })
         poisStore.deletePOI(poiId)
+        onGraphUpdate() // <-- 2. Call callback on delete
         console.log(`POI ${poiId} deleted successfully`)
       })
       .catch((err) => {
@@ -220,16 +233,15 @@ export function usePoiEditor(
       })
   }
 
-function updatePOIDraggables(isDraggable: boolean) {
-  poiLayer.eachLayer((layer) => {
-    if (layer instanceof L.Marker) {
-      const dragging = layer.dragging as L.Handler
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      isDraggable ? dragging.enable() : dragging.disable()
-    }
-  })
-}
-
+  function updatePOIDraggables(isDraggable: boolean) {
+    poiLayer.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        const dragging = layer.dragging as L.Handler
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        isDraggable ? dragging.enable() : dragging.disable()
+      }
+    })
+  }
 
   return {
     createPOI,

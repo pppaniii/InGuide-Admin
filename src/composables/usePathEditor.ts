@@ -4,7 +4,13 @@ import type { Connection } from '@/types/types'
 import { generateId } from '@/utils/generateId'
 import pathServices from '@/services/pathService'
 
-export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
+export function usePathEditor(
+  map: Ref<Map | null>,
+  drawnItems: FeatureGroup,
+  buildingId: Ref<string | undefined>,
+  floorId: Ref<string | null>,
+  onPathUpdate: () => void, // 1. Accept the callback
+) {
   const nodeMarkers: globalThis.Map<string, Marker> = new globalThis.Map()
   const connections: globalThis.Map<string, Connection[]> = new globalThis.Map()
 
@@ -26,7 +32,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
     connections.set(id, [])
     nodeMarkers.set(id, marker)
 
-    // Update connected lines when dragging node
+    // Keep this to update the connecting lines in real-time during the drag
     marker.on('drag', () => {
       const conns = connections.get(id) || []
       const newPos = marker.getLatLng()
@@ -34,6 +40,17 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
         const otherMarker = nodeMarkers.get(otherId)!
         polyline.setLatLngs([newPos, otherMarker.getLatLng()])
       })
+    })
+
+    // Trigger the save and graph generation once the drag is complete
+    marker.on('dragend', () => {
+      if (buildingId.value && floorId.value) {
+        savePath(buildingId.value, floorId.value)
+        onPathUpdate() // 2. Call the callback
+        console.log(`Path saved after dragging node ${id}.`)
+      } else {
+        console.error('Cannot save path: buildingId or floorId is missing.')
+      }
     })
 
     return marker
@@ -57,6 +74,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
     connections.get(sourceId)?.push({ nodeId: targetId, polyline })
     connections.set(targetId, [{ nodeId: sourceId, polyline }])
 
+    onPathUpdate() // 2. Call the callback
     return targetId
   }
 
@@ -100,6 +118,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
     }
     connections.delete(nodeId)
 
+    onPathUpdate() // 2. Call the callback
     return true
   }
 
@@ -113,6 +132,7 @@ export function usePathEditor(map: Ref<Map | null>, drawnItems: FeatureGroup) {
 
       // Create markers
       loadedGraph.nodes.forEach((node) => {
+        // Bug fix: Pass node.id, not buildingId
         const marker = createNode(L.latLng(node.coordinates[0], node.coordinates[1]), node.id)
         nodeMarkers.set(node.id, marker)
       })

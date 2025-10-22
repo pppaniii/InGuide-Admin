@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, toRaw, watch, type Ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, toRaw, watch, type Ref, computed, toRef } from 'vue'
 import L, { Map, FeatureGroup, LayerGroup, ImageOverlay } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePathEditor } from '@/composables/usePathEditor'
@@ -71,6 +71,9 @@ const emit = defineEmits<{
 const buildingStore = useBuildings()
 const poiStore = usePOIStore()
 
+const buildingIdRef = computed(() => props.building?.id) // Use computed for nested/optional props
+const floorIdRef = toRef(props, 'floorId')
+
 // Path editor
 const {
   nodeMarkers,
@@ -83,7 +86,13 @@ const {
   savePath,
   clearPath,
   pathSetNodeVisibility,
-} = usePathEditor(map as Ref, drawnItems)
+} = usePathEditor(
+  map as Ref,
+  drawnItems,
+  buildingIdRef,
+  floorIdRef,
+  generateAndSaveNavigationGraph,
+)
 
 // POI editor
 const {
@@ -95,7 +104,12 @@ const {
   removePOI,
   updatePOIDraggables,
   poisStore,
-} = usePoiEditor(map as Ref, poiLayer, emit)
+} = usePoiEditor(
+  map as Ref,
+  poiLayer,
+  emit,
+  generateAndSaveNavigationGraph, // <-- 3. Pass the callback
+)
 
 // Beacon editor
 const {
@@ -140,7 +154,7 @@ onMounted(async () => {
         selectedNodeId.value = null
         editorState.value = 'IDLE'
         savePath(props.building?.id as string, props.floorId as string)
-        generateAndSaveNavigationGraph()
+        // 4. REMOVED: generateAndSaveNavigationGraph() - composable calls it
       }
     }
     // Create POI
@@ -157,7 +171,7 @@ onMounted(async () => {
       }
       const newPOI = createPOI(newPoi, props.building?.id as string, props.floorId as string)
       newPOI.dragging?.enable()
-      generateAndSaveNavigationGraph()
+      // 4. REMOVED: generateAndSaveNavigationGraph() - composable calls it
       editorState.value = 'IDLE'
     }
     // Create BEACON
@@ -193,10 +207,11 @@ onMounted(async () => {
       const success = deleteNode(nodeId)
       if (success) {
         savePath(props.building?.id as string, props.floorId as string)
-        generateAndSaveNavigationGraph()
+        // 4. REMOVED: generateAndSaveNavigationGraph() - composable calls it
       }
     }
   })
+  // 4. REMOVED: poiLayer.addEventListener('mouseup', ...)
 })
 
 // Floor change
@@ -240,7 +255,7 @@ async function generateAndSaveNavigationGraph() {
     const buildingId: string = props.building?.id as string
     const floorId: string = props.floorId as string
     await navigationGraphService.saveNavigationGraph(buildingId, floorId, mergedGraph)
-    // console.log("nav graph generated and save")
+    console.log('Navigation graph generated and saved.')
   } catch (error) {
     console.log('generate and save Nav Graph', error)
   }
