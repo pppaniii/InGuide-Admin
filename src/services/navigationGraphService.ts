@@ -20,6 +20,18 @@ async function saveNavigationGraph(buildingId: string, floorId: string, graph: J
   }
 }
 
+async function getPortalGroups(buildingId: string) {
+  try {
+    const response = await httpClient.get(`/navigations/${ buildingId }/portal-groups`)
+    // console.log("Saved nav graph ", response.data)
+    return response.data
+  } catch (error) {
+    console.error('Error loading path data:', error)
+    throw error
+  }
+}
+
 export default {
   saveNavigationGraph,
+  getPortalGroups,
 }

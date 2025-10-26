@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Ref } from 'vue'
 import L, { FeatureGroup, Map, Marker } from 'leaflet'
 import type { Connection } from '@/types/types'
@@ -17,17 +18,31 @@ export function usePathEditor(
   /**
    * Create a node (marker) at a given latlng.
    */
-  function createNode(latlng: L.LatLng, nodeId?: string): Marker {
+  function createNode(
+    latlng: L.LatLng,
+    nodeId?: string,
+    portalGroup?: string | null, // <-- ADD portalGroup prop
+  ): Marker {
     const id = nodeId || generateId()
+
+    // --- 2. Logic copied from setNodePortalGroup ---
+    const isPortal = !!portalGroup
+    const icon = L.divIcon({
+      // Use a different class for portals so you can style them (e.g., make them blue)
+      className: 'custom-circle-node',
+      html: isPortal ? '<div>P</div>' : '<div></div>', // 'P' for Portal
+      iconSize: [20, 20],
+    })
+    // --- End logic ---
+
     const marker = L.marker(latlng, {
       draggable: true,
       title: id,
-      icon: L.divIcon({
-        className: 'custom-circle-node',
-        html: '<div></div>',
-        iconSize: [20, 20],
-      }),
+      icon: icon, // <-- Use the new icon
     }).addTo(drawnItems)
+
+    // --- 3. Store the portalGroup on the marker options ---
+    ;(marker.options as any).portalGroup = portalGroup || null
 
     connections.set(id, [])
     nodeMarkers.set(id, marker)
@@ -133,7 +148,7 @@ export function usePathEditor(
       // Create markers
       loadedGraph.nodes.forEach((node) => {
         // Bug fix: Pass node.id, not buildingId
-        const marker = createNode(L.latLng(node.coordinates[0], node.coordinates[1]), node.id)
+        const marker = createNode(L.latLng(node.coordinates[0], node.coordinates[1]), node.id, node.portalGroup)
         nodeMarkers.set(node.id, marker)
       })
 
@@ -194,6 +209,28 @@ export function usePathEditor(
     })
   }
 
+  function setNodePortalGroup(nodeId: string, groupName: string | null) {
+    const marker = nodeMarkers.get(nodeId)
+    if (!marker) return // 1. Update the data on the marker object
+    ;(marker.options as any).portalGroup = groupName
+
+    // 2. Update the icon
+    const isPortal = !!groupName
+    const icon = L.divIcon({
+      className: 'custom-circle-node',
+      html: isPortal ? '<div>P</div>' : '<div></div>', // 'P' for Portal
+      iconSize: [20, 20],
+    })
+    marker.setIcon(icon)
+
+    // 3. Save the path and trigger graph regeneration
+    if (buildingId.value && floorId.value) {
+      console.log('saving portal node')
+      savePath(buildingId.value, floorId.value) // This now saves the new portalGroup
+      onPathUpdate() // This calls generateAndSaveNavigationGraph
+    }
+  }
+
   return {
     nodeMarkers,
     connections,
@@ -205,5 +242,6 @@ export function usePathEditor(
     savePath,
     clearPath,
     pathSetNodeVisibility,
+    setNodePortalGroup,
   }
 }

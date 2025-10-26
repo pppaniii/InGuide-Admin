@@ -60,6 +60,7 @@
       @delete-poi="deletePOI"
       @save-beacon="saveBeaconInfo"
       @delete-beacon="deleteBeacon"
+      @save-node="saveNodeInfo"
     />
   </OverlayPanel>
   <PopUpWindow name="popup" v-model:visible="showPopup">
@@ -104,10 +105,10 @@
         </button>
       </div>
     </div>
-    <d v-else>
+    <div v-else>
       <p>Something went wrong.....</p>
       <p>please close this pop-up and try again</p>
-    </d>
+    </div>
   </PopUpWindow>
 </template>
 
@@ -116,6 +117,10 @@ import AdminSidePanel from '@/components/AdminSidePanel.vue'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
 import OverlayPanel from '@/components/OverlayPanel.vue'
+
+import BeaconEditor from '@/components/overlayContents/beaconEditor.vue'
+import NodeEditor from '@/components/overlayContents/nodeEditor.vue'
+import POIEditor from '@/components/overlayContents/POIEditor.vue'
 
 import { computed, onMounted, ref, watch, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -211,14 +216,27 @@ async function handleOpenOverlay({
   if (type === 'POI' && editorMode.value == 'POI') {
     overlayVisible.value = true
     overlayTitle.value = 'Edit POI'
-    overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
+    overlayComponent.value = POIEditor
     overlayProps.value = { poi: data, isLoading: loading, buildingId: buildingId, floorId: floorId }
   }
   if (type === 'BEACON' && editorMode.value == 'BEACON') {
     overlayVisible.value = true
     overlayTitle.value = 'Edit Beacon'
-    overlayComponent.value = (await import('@/components/overlayContents/beaconEditor.vue')).default
+    overlayComponent.value = BeaconEditor
     overlayProps.value = { beacon: data, isLoading: loading, buildingId, floorId }
+  }
+  if (type === 'NODE' && editorMode.value == 'PATH') {
+    overlayVisible.value = true
+    overlayTitle.value = 'Edit Path Node Portal'
+    overlayComponent.value = NodeEditor // <-- Use the new component
+    overlayProps.value = {
+      // Pass the props your NodeEditor.vue component expects
+      portalNames: data.portalNames,
+      currentNodePortalName: data.currentNodePortalName,
+      nodeId: data.nodeId,
+      buildingId,
+      floorId
+    }
   }
 }
 
@@ -250,6 +268,13 @@ async function deleteBeacon(payload: any) {
   const { buildingId, floorId, beaconId } = payload
   mapEditorRef.value?.removeBeacon(buildingId, floorId, beaconId)
   overlayVisible.value = false
+}
+
+// Walkway Function
+async function saveNodeInfo(payload: { nodeId: string, portalName: string | null }) {
+  // Call the function you exposed on MapEditor.vue
+  mapEditorRef.value?.handlePortalSave(payload.nodeId, payload.portalName)
+  overlayVisible.value = false // Close the overlay
 }
 
 // Floor Functions

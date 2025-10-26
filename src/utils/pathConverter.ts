@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { MapNode, MapEdge, NavigationGraph, JSONNavigationGraph } from '@/types/path'
 import type { Marker } from 'leaflet'
 
@@ -11,14 +12,22 @@ export function convertEditorToGraph(
   // Convert nodes
   nodeMarkers.forEach((marker, id) => {
     const latlng = marker.getLatLng()
+
+    // --- THIS IS THE FIX ---
+    // Read the portalGroup from the marker's options,
+    // where you saved it in usePathEditor.ts
+    const portalGroup = (marker.options as any).portalGroup || null
+    // --- END FIX ---
+
     nodes.set(id, {
       id,
       coordinates: [latlng.lat, latlng.lng],
-      // you could add flags here later: isPOI, isIntersection, isStair, etc.
+      // --- ADD THIS LINE ---
+      portalGroup: portalGroup || undefined, // Add the property here
     })
   })
 
-  // Convert edges
+  // Convert edges (This part was already correct)
   connections.forEach((edges, sourceId) => {
     const edgeList: MapEdge[] = edges.map(({ nodeId, polyline }) => {
       const latlngs = polyline.getLatLngs() as L.LatLng[]
@@ -31,6 +40,9 @@ export function convertEditorToGraph(
   return { nodes, adjacencyList }
 }
 
+// This function is correct and needs no changes.
+// It will now correctly include the `portalGroup`
+// since the nodes in the graph have it.
 export function graphToJSON(graph: NavigationGraph): JSONNavigationGraph {
   return {
     nodes: Array.from(graph.nodes.values()),
@@ -38,10 +50,10 @@ export function graphToJSON(graph: NavigationGraph): JSONNavigationGraph {
   }
 }
 
+// This function is also correct.
 export function jsonToGraph(json: JSONNavigationGraph): NavigationGraph {
   return {
     nodes: new Map(json.nodes.map(node => [node.id, node])),
     adjacencyList: new Map(Object.entries(json.adjacencyList)),
   }
 }
-

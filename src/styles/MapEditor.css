@@ -72,6 +72,9 @@
   border-radius: 50%;
   background-color: #51854e;
   border: 2px solid #fffbf3;
+  text-align: center;
+  color: #ebd6bc;
+  font-weight: bold;
 }
 
 .custom-circle-node.selected div {

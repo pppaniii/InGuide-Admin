@@ -15,6 +15,7 @@
     background: #D8EAD2;
     border-radius: 10px;
     height: 300px;
+    overflow: scroll;
 }
 
 .poi-list {

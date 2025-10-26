@@ -16,6 +16,7 @@
   background: #D8EAD2;
   border-radius: 10px;
   height: 300px;
+  overflow: scroll;
 }
 
 .walkway-floor-list {
@@ -66,10 +67,10 @@
   color: #fff;
 }
 
-.walkway-btn.connect { 
-  background: #7DA085; 
+.walkway-btn.connect {
+  background: #7DA085;
 }
 
-.walkway-btn.delete  { 
-  background: #CF4648; 
+.walkway-btn.delete  {
+  background: #CF4648;
 }
