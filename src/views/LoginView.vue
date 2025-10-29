@@ -2,10 +2,8 @@
   <div class="login-page">
     <div class="login-card">
       <!-- Left Side -->
-      <div class="hero">
-        <div class="hero-icon">
-          image
-        </div>
+      <div class="img-container">
+        <img :src="coverImage" alt="Floor plan cover">
       </div>
 
       <!-- Right form -->
@@ -43,6 +41,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/stores/auth'
+import coverImage from '@/assets/Cover.png'
 
 const router = useRouter()
 const route = useRoute()
