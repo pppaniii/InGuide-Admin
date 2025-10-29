@@ -32,34 +32,77 @@
   </div>
   <!-- Popup for adding a building -->
   <PopUpWindow v-model:visible="showPopup">
-    <h2 class="popup-title">Add Building</h2>
-    <form @submit.prevent="submitBuilding" class="popup-form">
-      <div class="form-row">
-        <label>Building Name:</label>
-        <input v-model="form.name" type="text" placeholder="Building Name" required />
-      </div>
+  <h2 class="popup-title">Add Building</h2>
 
-      <div class="form-row">
-        <label>NW Bound:</label>
-        <div class="coords">
-          <input v-model="form.nwLat" type="number" step="any" placeholder="Latitude" required />
-          <input v-model="form.nwLng" type="number" step="any" placeholder="Longitude" required />
-        </div>
-      </div>
+  <!-- Error Message -->
+  <div v-if="errors.length" class="error-box">
+    <p v-for="(err, i) in errors" :key="i" class="error-text">⚠️ {{ err }}</p>
+  </div>
 
-      <div class="form-row">
-        <label>SE Bound:</label>
-        <div class="coords">
-          <input v-model="form.seLat" type="number" step="any" placeholder="Latitude" required />
-          <input v-model="form.seLng" type="number" step="any" placeholder="Longitude" required />
-        </div>
-      </div>
+  <!-- Success Message -->
+  <p v-if="successMsg" class="success-text">{{ successMsg }}</p>
 
-      <div class="form-actions">
-        <button class="createBuildingBtn" type="submit">Save</button>
+  <form @submit.prevent="submitBuilding" class="popup-form">
+    <div class="form-row">
+      <label>Building Name:</label>
+      <input
+        v-model="form.name"
+        type="text"
+        placeholder="Building Name"
+        required
+        :class="{ invalid: errors.some(e => e.includes('Building name')) }"
+      />
+    </div>
+
+    <div class="form-row">
+      <label>NW Bound:</label>
+      <div class="coords">
+        <input
+          v-model="form.nwLat"
+          type="number"
+          step="any"
+          placeholder="Latitude"
+          required
+          :class="{ invalid: errors.some(e => e.includes('NW Latitude')) }"
+        />
+        <input
+          v-model="form.nwLng"
+          type="number"
+          step="any"
+          placeholder="Longitude"
+          required
+          :class="{ invalid: errors.some(e => e.includes('NW Longitude')) }"
+        />
       </div>
-    </form>
-  </PopUpWindow>
+    </div>
+
+    <div class="form-row">
+      <label>SE Bound:</label>
+      <div class="coords">
+        <input
+          v-model="form.seLat"
+          type="number"
+          step="any"
+          placeholder="Latitude"
+          required
+          :class="{ invalid: errors.some(e => e.includes('SE Latitude')) }"
+        />
+        <input
+          v-model="form.seLng"
+          type="number"
+          step="any"
+          placeholder="Longitude"
+          required
+          :class="{ invalid: errors.some(e => e.includes('SE Longitude')) }"
+        />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="createBuildingBtn" type="submit">Save</button>
+    </div>
+  </form>
+</PopUpWindow>
 </template>
 
 <script setup lang="ts">
@@ -79,9 +122,8 @@ onMounted(() => {
 })
 const isEmpty = computed(() => !store.loading && store.items.length === 0)
 
-// popup visibility
 const showPopup = ref(false)
-// form state
+
 const form = ref({
   name: '',
   nwLat: '',
@@ -89,21 +131,61 @@ const form = ref({
   seLat: '',
   seLng: '',
 })
-async function submitBuilding() {
-  if (!form.value.name) return
 
+const errors = ref<string[]>([])
+const successMsg = ref('')
+
+function isValidLat(lat: number) {
+  return lat >= -90 && lat <= 90
+}
+function isValidLng(lng: number) {
+  return lng >= -180 && lng <= 180
+}
+
+async function submitBuilding() {
+  errors.value = []
+  successMsg.value = ''
+
+  // --- Validation ---
+  if (!form.value.name.trim()) {
+    errors.value.push('Building name is required.')
+  }
+
+  const coordFields = [
+    { key: 'nwLat', label: 'NW Latitude', value: form.value.nwLat, check: isValidLat },
+    { key: 'nwLng', label: 'NW Longitude', value: form.value.nwLng, check: isValidLng },
+    { key: 'seLat', label: 'SE Latitude', value: form.value.seLat, check: isValidLat },
+    { key: 'seLng', label: 'SE Longitude', value: form.value.seLng, check: isValidLng },
+  ]
+
+  coordFields.forEach(c => {
+    const num = parseFloat(c.value)
+    if (isNaN(num)) {
+      errors.value.push(`${c.label} must be a valid number.`)
+    } else if (!c.check(num)) {
+      errors.value.push(`${c.label} must be within a valid range (${c.label.includes('Lat') ? '-90 to 90' : '-180 to 180'}).`)
+    }
+  })
+
+  if (errors.value.length > 0) {
+    return // Exception flow → show errors
+  }
+
+  // --- Normal flow continues ---
   await store.create(
     form.value.name,
     [parseFloat(form.value.nwLat), parseFloat(form.value.nwLng)],
     [parseFloat(form.value.seLat), parseFloat(form.value.seLng)],
   )
 
-  // reset & close
   form.value = { name: '', nwLat: '', nwLng: '', seLat: '', seLng: '' }
   showPopup.value = false
+  successMsg.value = 'Building added successfully.'
 }
 
 async function addBuilding(): Promise<void> {
+  errors.value = []
+  successMsg.value = ''
   showPopup.value = true
 }
 
@@ -115,6 +197,7 @@ function openBuilding(id: string): void {
   router.push({ name: 'building-floorplan', params: { id } })
 }
 </script>
+
 
 <style src="../styles/DashboardView.css"></style>
 
@@ -198,6 +281,50 @@ input:focus {
 
 .createBuildingBtn:hover {
   background: #678b6f;
+}
+
+.error-box {
+  background: #ffeaea;
+  border: 1px solid #e39b9b;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.error-text {
+  color: #b30000;
+  font-size: 0.9rem;
+  margin: 2px 0;
+}
+
+.invalid {
+  border-color: #e39b9b !important;
+  background: #fff5f5;
+}
+
+.success-text {
+  color: #2e7d32;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.invalid {
+  border-color: #d9534f !important;
+  background: #fff5f5;
+}
+
+.error-box {
+  background: #ffeaea;
+  border: 1px solid #d9534f;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.error-text {
+  color: #b30000;
+  font-size: 0.9rem;
+  margin: 2px 0;
 }
 
 </style>

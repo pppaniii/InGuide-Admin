@@ -9,7 +9,7 @@
   <div class="floor-panel">
     <!-- Floor List -->
     <div class="floor-list-container">
-      <div class="floor-list">
+      <div class="floor-list" v-if="props.building.floors.length != 0">
         <button
           v-for="floor in props.building.floors"
           :key="floor.id"
@@ -19,6 +19,9 @@
         >
           {{ floor.floor }}
         </button>
+      </div>
+      <div v-else>
+        No floors available in this building.
       </div>
     </div>
 

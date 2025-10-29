@@ -60,36 +60,41 @@
       @delete-poi="deletePOI"
       @save-beacon="saveBeaconInfo"
       @delete-beacon="deleteBeacon"
+      @save-node="saveNodeInfo"
     />
   </OverlayPanel>
   <PopUpWindow name="popup" v-model:visible="showPopup">
+    <!-- IMAGE -->
     <div v-if="popUpContent == 'UPDATE'">
       <div
         class="upload-box"
         @dragover.prevent
         @dragenter.prevent
-        @drop.prevent="useFileSelector.handleDrop"
+        @drop.prevent="floorFileSelector.handleDrop"
         @click="selectFloorFile"
       >
-        <p v-if="!useFileSelector.isSelectedFile()">
+        <p v-if="!floorFileSelector.isSelectedFile()">
           Drag & Drop your file here, or click to select
         </p>
-        <p v-else>Selected: {{ useFileSelector.file.value?.name }}</p>
+        <p v-else>Selected: {{ floorFileSelector.file.value?.name }}</p>
         <input
-          ref="fileInput"
+          ref="floorFileSelector.fileInput"
           type="file"
           accept="image/*"
           class="hidden-input"
-          @change="useFileSelector.handleChange"
+          @change="floorFileSelector.handleChange"
         />
       </div>
-      <div class="actions" v-if="useFileSelector.isSelectedFile()">
+      <div class="actions" v-if="floorFileSelector.isSelectedFile()">
         <button @click="updateFloorPlan">Confirm</button>
-        <button @click="useFileSelector.clearFile">Cancel</button>
+        <button @click="floorFileSelector.clearFile">Cancel</button>
       </div>
     </div>
+
+    <!-- DELETE FLOOR -->
     <div v-else-if="popUpContent == 'DELETE'">
-      <p>delete ก่?</p>
+      <p>Are you sure you want to delete this floor?</p>
+      <p>This action can't be undone.</p>
       <div class="actions">
         <button @click="deleteFloorPlan">Confirm</button>
         <button
@@ -104,10 +109,11 @@
         </button>
       </div>
     </div>
-    <d v-else>
+    <!-- ERROR -->
+    <div v-else>
       <p>Something went wrong.....</p>
       <p>please close this pop-up and try again</p>
-    </d>
+    </div>
   </PopUpWindow>
 </template>
 
@@ -117,11 +123,15 @@ import AdminNavbar from '@/components/AdminNavbar.vue'
 import MapEditor from '@/components/MapEditor.vue'
 import OverlayPanel from '@/components/OverlayPanel.vue'
 
+import BeaconEditor from '@/components/overlayContents/beaconEditor.vue'
+import NodeEditor from '@/components/overlayContents/nodeEditor.vue'
+import POIEditor from '@/components/overlayContents/POIEditor.vue'
+
 import { computed, onMounted, ref, watch, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBuildings } from '@/stores/buildings'
 import PopUpWindow from '@/components/PopUpWindow.vue'
-import useFileSelector from '@/composables/useFileSelector'
+import { useFileSelector } from '@/composables/useFileSelector'
 import imageService from '@/services/imageService'
 // import { convertEditorToGraph } from '@/utils/pathConverter'
 
@@ -145,6 +155,8 @@ const floorId = ref<string | null>(null)
 
 const mapEditorRef = ref<InstanceType<typeof MapEditor> | null>(null)
 
+const floorFileSelector = useFileSelector(['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'])
+
 const editorMode = computed<'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
   switch (route.name) {
     case 'building-floorplan':
@@ -154,7 +166,7 @@ const editorMode = computed<'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
     case 'building-pois':
       return 'POI'
     case 'building-beacons':
-      console.log('nabbbu')
+      // console.log('nabbbu')
       return 'BEACON'
     default:
       return 'IDLE'
@@ -211,14 +223,27 @@ async function handleOpenOverlay({
   if (type === 'POI' && editorMode.value == 'POI') {
     overlayVisible.value = true
     overlayTitle.value = 'Edit POI'
-    overlayComponent.value = (await import('@/components/overlayContents/POIEditor.vue')).default
+    overlayComponent.value = POIEditor
     overlayProps.value = { poi: data, isLoading: loading, buildingId: buildingId, floorId: floorId }
   }
   if (type === 'BEACON' && editorMode.value == 'BEACON') {
     overlayVisible.value = true
     overlayTitle.value = 'Edit Beacon'
-    overlayComponent.value = (await import('@/components/overlayContents/beaconEditor.vue')).default
+    overlayComponent.value = BeaconEditor
     overlayProps.value = { beacon: data, isLoading: loading, buildingId, floorId }
+  }
+  if (type === 'NODE' && editorMode.value == 'PATH') {
+    overlayVisible.value = true
+    overlayTitle.value = 'Edit Path Node Portal'
+    overlayComponent.value = NodeEditor // <-- Use the new component
+    overlayProps.value = {
+      // Pass the props your NodeEditor.vue component expects
+      portalNames: data.portalNames,
+      currentNodePortalName: data.currentNodePortalName,
+      nodeId: data.nodeId,
+      buildingId,
+      floorId,
+    }
   }
 }
 
@@ -252,17 +277,25 @@ async function deleteBeacon(payload: any) {
   overlayVisible.value = false
 }
 
+// Walkway Function
+async function saveNodeInfo(payload: { nodeId: string; portalName: string | null }) {
+  // Call the function you exposed on MapEditor.vue
+  mapEditorRef.value?.handlePortalSave(payload.nodeId, payload.portalName)
+  overlayVisible.value = false // Close the overlay
+}
+
 // Floor Functions
 async function updateFloorPlan() {
   showPopup.value = false
-  if (useFileSelector.file.value) {
-    const file: File = useFileSelector.file.value
+  if (floorFileSelector.file.value) {
+    // CHANGED
+    const file: File = floorFileSelector.file.value // CHANGED
     const imgUrl = await imageService.uploadImage(file)
     mapEditorRef.value?.updateFloorPlan(imgUrl)
   } else {
     console.error('cannot update floor')
   }
-  useFileSelector.clearFile()
+  floorFileSelector.clearFile() // CHANGED
   popUpContent.value = 'NAN'
 }
 function deleteFloorPlan() {
@@ -276,11 +309,12 @@ const selectFloorFile = async () => {
   const file: File | null = await new Promise((resolve) => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = 'image/*'
+    // Use the allowed types from our instance
+    input.accept = 'image/*' // Or be more specific: 'image/png,image/jpeg,image/svg+xml'
     input.onchange = () => resolve(input.files?.[0] ?? null)
     input.click()
   })
-  if (file) useFileSelector.validateAndSetFile(file)
+  if (file) floorFileSelector.validateAndSetFile(file) // CHANGED
 }
 
 onMounted(() => {
@@ -288,8 +322,8 @@ onMounted(() => {
   if (buildingId) {
     router.replace(`/building/${buildingId}/floorplan`) // redirect
   }
-  useFileSelector.clearFile()
-  console.log('file: ', useFileSelector.file)
+  floorFileSelector.clearFile() // CHANGED
+  console.log('file: ', floorFileSelector.file) // CHANGED
   // Reapply mode after mount
   applyEditorMode(editorMode.value)
   floorId.value = building.value?.floors[0].id as string

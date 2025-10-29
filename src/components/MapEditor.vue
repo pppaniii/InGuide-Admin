@@ -86,6 +86,7 @@ const {
   savePath,
   clearPath,
   pathSetNodeVisibility,
+  setNodePortalGroup,
 } = usePathEditor(
   map as Ref,
   drawnItems,
@@ -124,8 +125,17 @@ const {
 
 // Floor editor
 const floorEditor = useFloorEditor(map as Ref)
+const existingPortalNames = ref(new Set<string>())
 
 onMounted(async () => {
+  if (props.building?.id) {
+    try {
+      const names = await navigationGraphService.getPortalGroups(props.building.id)
+      existingPortalNames.value = new Set(names)
+    } catch (error) {
+      console.error("Failed to load portal groups:", error)
+    }
+  }
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
     center: props.building?.NE_bound,
     zoom: 18,
@@ -135,6 +145,8 @@ onMounted(async () => {
   toRaw(map.value)?.addLayer(drawnItems)
   toRaw(map.value)?.addLayer(poiLayer)
   toRaw(map.value)?.addLayer(beaconLayer)
+
+  await loadFloorData(props.floorId)
 
   // Click map
   toRaw(map.value)?.on('click', async (event: L.LeafletMouseEvent) => {
@@ -195,6 +207,28 @@ onMounted(async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawnItems.on('click', (event: any) => {
     if (!(event.layer instanceof L.Marker)) return
+    const nodeId = event.layer.options.title as string
+    if (editorMode.value === 'PATH' && editorState.value === 'IDLE') {
+      selectedNodeId.value = nodeId
+
+      // Get the node's current portal name
+      const marker = nodeMarkers.get(nodeId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const currentName = (marker?.options as any).portalGroup || null
+
+      // Emit the event for LayoutView to handle
+      emit('openOverlay', {
+        type: 'NODE', // <-- A new type for your overlay handler
+        data: {
+          nodeId: nodeId,
+          currentNodePortalName: currentName,
+          portalNames: existingPortalNames.value // Pass the set of names
+        },
+        loading: false,
+        buildingId: props.building?.id as string,
+        floorId: props.floorId as string
+      })
+    }
     if (editorState.value === 'CONNECTING') {
       const nodeId = event.layer.options.title as string
       if (!selectedNodeId.value) {
@@ -217,23 +251,10 @@ onMounted(async () => {
 // Floor change
 watch(
   () => props.floorId,
-  async (newFloorId, oldFloorId) => {
-    if (!newFloorId) return
-    if (oldFloorId != null) {
-      clearPath()
-      clearPOIs()
-      clearBeacons()
-    }
-
-    floorEditor.renderFloorPlan(newFloorId)
-
-    await loadPath(props.building?.id as string, newFloorId)
-    if (editorMode.value !== 'PATH') {
-      pathSetNodeVisibility(false)
-    }
-    await loadPOIs(props.building?.id as string, newFloorId)
-    await loadBeacons(props.building?.id as string, newFloorId)
-    resetEditor()
+  async (newFloorId) => {
+    // --- THIS IS NOW MUCH CLEANER ---
+    // Just call the reusable function
+    await loadFloorData(newFloorId)
   },
 )
 
@@ -245,6 +266,34 @@ onBeforeUnmount(() => {
   }
 })
 
+async function loadFloorData(newFloorId: string | null) {
+  // This guard is still essential
+  if (!newFloorId || !map.value) {
+    console.warn('Skipping floor load:', { newFloorId, mapExists: !!map.value })
+    return
+  }
+
+  console.log('Loading data for floor:', newFloorId)
+
+  // Clear old layers (but only if there are old layers)
+  if (drawnItems.getLayers().length > 0) {
+    clearPath()
+    clearPOIs()
+    clearBeacons()
+  }
+
+  // This is the line that was failing before
+  floorEditor.renderFloorPlan(newFloorId)
+
+  await loadPath(props.building?.id as string, newFloorId)
+  if (editorMode.value !== 'PATH') {
+    pathSetNodeVisibility(false)
+  }
+  await loadPOIs(props.building?.id as string, newFloorId)
+  await loadBeacons(props.building?.id as string, newFloorId)
+  resetEditor()
+}
+
 async function generateAndSaveNavigationGraph() {
   try {
     if (nodeMarkers == undefined) return
@@ -252,6 +301,7 @@ async function generateAndSaveNavigationGraph() {
     if (poisStore.pois == null) return
     const graph = convertEditorToGraph(nodeMarkers, connections)
     const mergedGraph = mergePOIsIntoGraph(graph, poiStore.pois as POI[])
+    console.log(mergedGraph)
     const buildingId: string = props.building?.id as string
     const floorId: string = props.floorId as string
     await navigationGraphService.saveNavigationGraph(buildingId, floorId, mergedGraph)
@@ -313,6 +363,17 @@ function deleteFloorPlan() {
   } else console.error('there is no selected floor')
 }
 
+function handlePortalSave(nodeId: string, newName: string | null) {
+  // Call the composable function!
+  setNodePortalGroup(nodeId, newName)
+
+  // Update the "Set" locally so it appears in the dropdown
+  // on the next click, without a full refresh.
+  if (newName) {
+    existingPortalNames.value.add(newName)
+  }
+}
+
 // PATH states
 function startConnecting() {
   editorState.value = editorState.value !== 'CONNECTING' ? 'CONNECTING' : 'IDLE'
@@ -351,6 +412,8 @@ defineExpose({
   addFloorPlan,
   updateFloorPlan,
   deleteFloorPlan,
+  //Path
+  handlePortalSave,
 })
 </script>
 
