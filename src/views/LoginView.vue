@@ -50,6 +50,10 @@ const auth = useAuth()
 const email = ref('')
 const password = ref('')
 
+// Allowed credentials
+const ALLOWED_EMAIL = 'admin@gmail.com'
+const ALLOWED_PASSWORD = 'Admin1423'
+
 const formError = ref('')
 const invalidEmail = ref(false)
 const invalidPassword = ref(false)
@@ -62,9 +66,11 @@ function validate(e: string, p: string) {
   invalidEmail.value = emailBad
   invalidPassword.value = passwordBad
 
-  if (emailBad && passwordBad) return 'Please enter a valid email and password.'
-  if (emailBad) return 'Enter a valid email address.'
-  if (passwordBad) return 'Password must be 8+ characters and include letters and numbers.'
+  if (e !== ALLOWED_EMAIL || p !== ALLOWED_PASSWORD){
+    invalidEmail.value = e !== ALLOWED_EMAIL
+    invalidPassword.value = e !== ALLOWED_PASSWORD
+    return 'Invalid Email or Password.'
+  }
   return ''
 }
 
@@ -74,7 +80,7 @@ async function submit() {
   if (formError.value) return
 
   try {
-    await auth.login(email.value.trim(), password.value)
+    await auth.login(ALLOWED_EMAIL, ALLOWED_PASSWORD)
     const redirect = (route.query.redirect as string) || '/'
     router.replace(redirect)
   } catch {
