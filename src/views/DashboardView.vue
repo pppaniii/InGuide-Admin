@@ -13,6 +13,8 @@
       <!-- Page content -->
       <section class="content">
         <div v-if="store.loading">Loading…</div>
+        <!-- Success message will automatically disappear -->
+        <p v-if="successMsg" class="success-text">{{ successMsg }}</p>
         <div v-else class="grid">
           <!-- Existing buildings -->
           <BuildingCard
@@ -30,79 +32,89 @@
       </section>
     </main>
   </div>
+
   <!-- Popup for adding a building -->
   <PopUpWindow v-model:visible="showPopup">
-  <h2 class="popup-title">Add Building</h2>
+    <h2 class="popup-title">Add Building</h2>
 
-  <!-- Error Message -->
-  <div v-if="errors.length" class="error-box">
-    <p v-for="(err, i) in errors" :key="i" class="error-text">⚠️ {{ err }}</p>
-  </div>
-
-  <!-- Success Message -->
-  <p v-if="successMsg" class="success-text">{{ successMsg }}</p>
-
-  <form @submit.prevent="submitBuilding" class="popup-form">
-    <div class="form-row">
-      <label>Building Name:</label>
-      <input
-        v-model="form.name"
-        type="text"
-        placeholder="Building Name"
-        required
-        :class="{ invalid: errors.some(e => e.includes('Building name')) }"
-      />
+    <!-- Error Message -->
+    <div v-if="errors.length" class="error-box">
+      <p v-for="(err, i) in errors" :key="i" class="error-text">⚠️ {{ err }}</p>
     </div>
 
-    <div class="form-row">
-      <label>NW Bound:</label>
-      <div class="coords">
+    <!-- Success Message -->
+
+    <form @submit.prevent="submitBuilding" class="popup-form">
+      <div class="form-row">
+        <label>Building Name:</label>
         <input
-          v-model="form.nwLat"
-          type="number"
-          step="any"
-          placeholder="Latitude"
+          v-model="form.name"
+          type="text"
+          placeholder="Building Name"
           required
-          :class="{ invalid: errors.some(e => e.includes('NW Latitude')) }"
-        />
-        <input
-          v-model="form.nwLng"
-          type="number"
-          step="any"
-          placeholder="Longitude"
-          required
-          :class="{ invalid: errors.some(e => e.includes('NW Longitude')) }"
+          :class="{ invalid: errors.some((e) => e.includes('Building name')) }"
         />
       </div>
-    </div>
 
-    <div class="form-row">
-      <label>SE Bound:</label>
-      <div class="coords">
-        <input
-          v-model="form.seLat"
-          type="number"
-          step="any"
-          placeholder="Latitude"
-          required
-          :class="{ invalid: errors.some(e => e.includes('SE Latitude')) }"
-        />
-        <input
-          v-model="form.seLng"
-          type="number"
-          step="any"
-          placeholder="Longitude"
-          required
-          :class="{ invalid: errors.some(e => e.includes('SE Longitude')) }"
-        />
+      <div class="form-row">
+        <label>NW Bound:</label>
+        <div class="coords">
+          <input
+            v-model="form.nwLat"
+            type="number"
+            step="any"
+            placeholder="Latitude"
+            required
+            :class="{ invalid: errors.some((e) => e.includes('NW Latitude')) }"
+          />
+          <input
+            v-model="form.nwLng"
+            type="number"
+            step="any"
+            placeholder="Longitude"
+            required
+            :class="{ invalid: errors.some((e) => e.includes('NW Longitude')) }"
+          />
+        </div>
       </div>
-    </div>
 
-    <div class="form-actions">
-      <button class="createBuildingBtn" type="submit">Save</button>
+      <div class="form-row">
+        <label>SE Bound:</label>
+        <div class="coords">
+          <input
+            v-model="form.seLat"
+            type="number"
+            step="any"
+            placeholder="Latitude"
+            required
+            :class="{ invalid: errors.some((e) => e.includes('SE Latitude')) }"
+          />
+          <input
+            v-model="form.seLng"
+            type="number"
+            step="any"
+            placeholder="Longitude"
+            required
+            :class="{ invalid: errors.some((e) => e.includes('SE Longitude')) }"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="createBuildingBtn" type="submit">Save</button>
+      </div>
+    </form>
+  </PopUpWindow>
+
+  <!-- Popup for deleting a building -->
+  <PopUpWindow v-model:visible="showDeleteConfirm">
+    <h2 class="popup-title">Confirm Deletion</h2>
+    <p class="confirm-text">Are you sure you want to delete this building? This action cannot be undone.</p>
+    <div class="form-actions-delete">
+      <button class="cancelBtn" @click="cancelDelete">Cancel</button>
+      <button class="deleteBtn" @click="confirmDelete">Delete</button>
     </div>
-  </form>
-</PopUpWindow>
+  </PopUpWindow>
 </template>
 
 <script setup lang="ts">
@@ -123,6 +135,8 @@ onMounted(() => {
 const isEmpty = computed(() => !store.loading && store.items.length === 0)
 
 const showPopup = ref(false)
+const showDeleteConfirm = ref(false) // For delete confirmation modal
+const buildingToDelete = ref<string | null>(null) // To store which building to delete
 
 const form = ref({
   name: '',
@@ -134,6 +148,16 @@ const form = ref({
 
 const errors = ref<string[]>([])
 const successMsg = ref('')
+
+/**
+ * Clears the success message after 5 seconds.
+ */
+function setSuccessMessage(message: string) {
+  successMsg.value = message
+  setTimeout(() => {
+    successMsg.value = ''
+  }, 5000) // 5000ms = 5 seconds
+}
 
 function isValidLat(lat: number) {
   return lat >= -90 && lat <= 90
@@ -158,12 +182,14 @@ async function submitBuilding() {
     { key: 'seLng', label: 'SE Longitude', value: form.value.seLng, check: isValidLng },
   ]
 
-  coordFields.forEach(c => {
+  coordFields.forEach((c) => {
     const num = parseFloat(c.value)
     if (isNaN(num)) {
       errors.value.push(`${c.label} must be a valid number.`)
     } else if (!c.check(num)) {
-      errors.value.push(`${c.label} must be within a valid range (${c.label.includes('Lat') ? '-90 to 90' : '-180 to 180'}).`)
+      errors.value.push(
+        `${c.label} must be within a valid range (${c.label.includes('Lat') ? '-90 to 90' : '-180 to 180'}).`,
+      )
     }
   })
 
@@ -180,7 +206,7 @@ async function submitBuilding() {
 
   form.value = { name: '', nwLat: '', nwLng: '', seLat: '', seLng: '' }
   showPopup.value = false
-  successMsg.value = 'Building added successfully.'
+  setSuccessMessage('Building added successfully.') // Use the new function
 }
 
 async function addBuilding(): Promise<void> {
@@ -189,15 +215,38 @@ async function addBuilding(): Promise<void> {
   showPopup.value = true
 }
 
+/**
+ * Shows the delete confirmation modal.
+ */
 async function deleteBuilding(id: string): Promise<void> {
-  if (confirm('Delete this building?')) await store.remove(id)
+  // if (confirm('Delete this building?')) await store.remove(id) // Replaced with custom modal
+  buildingToDelete.value = id
+  showDeleteConfirm.value = true
+}
+
+/**
+ * Called from the delete confirmation modal to proceed with deletion.
+ */
+async function confirmDelete(): Promise<void> {
+  if (buildingToDelete.value) {
+    await store.remove(buildingToDelete.value)
+    setSuccessMessage('Building deleted successfully.') // Give feedback with timeout
+  }
+  cancelDelete()
+}
+
+/**
+ * Closes the delete confirmation modal and clears state.
+ */
+function cancelDelete(): void {
+  showDeleteConfirm.value = false
+  buildingToDelete.value = null
 }
 
 function openBuilding(id: string): void {
   router.push({ name: 'building-floorplan', params: { id } })
 }
 </script>
-
 
 <style src="../styles/DashboardView.css"></style>
 
@@ -250,7 +299,7 @@ function openBuilding(id: string): void {
 
 input {
   padding: 8px 10px;
-  border: 1px solid #ccc;   /* mild gray border */
+  border: 1px solid #ccc; /* mild gray border */
   border-radius: 4px;
   background: #fff;
   font-size: 0.95rem;
@@ -306,6 +355,11 @@ input:focus {
   color: #2e7d32;
   font-weight: 600;
   margin-bottom: 8px;
+  text-align: center;
+  padding: 10px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
 }
 
 .invalid {
@@ -327,4 +381,44 @@ input:focus {
   margin: 2px 0;
 }
 
+/* Styles for Delete Confirmation Modal */
+.confirm-text {
+  text-align: center;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.form-actions-delete {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancelBtn,
+.deleteBtn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.cancelBtn {
+  color: #333;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+}
+.cancelBtn:hover {
+  background: #e0e0e0;
+}
+
+.deleteBtn {
+  color: #fff;
+  background: #d9534f;
+}
+.deleteBtn:hover {
+  background: #c9302c;
+}
 </style>
