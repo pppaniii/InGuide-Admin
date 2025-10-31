@@ -15,7 +15,7 @@
         <div v-if="store.loading">Loading…</div>
         <!-- Success message will automatically disappear -->
         <p v-if="successMsg" class="success-text">{{ successMsg }}</p>
-        <div v-else class="grid">
+        <div class="grid">
           <!-- Existing buildings -->
           <BuildingCard
             v-for="b in store.items"
