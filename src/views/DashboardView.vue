@@ -57,7 +57,7 @@
       </div>
 
       <div class="form-row">
-        <label>NW Bound:</label>
+        <label>NE Bound:</label>
         <div class="coords">
           <input
             v-model="form.nwLat"
@@ -79,7 +79,7 @@
       </div>
 
       <div class="form-row">
-        <label>SE Bound:</label>
+        <label>SW Bound:</label>
         <div class="coords">
           <input
             v-model="form.seLat"
