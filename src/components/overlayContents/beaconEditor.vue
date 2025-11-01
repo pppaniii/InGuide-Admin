@@ -22,21 +22,21 @@
         <div class="coor-inputs">
           <label class="coor-item">
             <span class="coor-type">Latitude: </span>
-            <input 
-              type="number" 
-              step="0.000001" 
-              v-model="localBeacon.latLng[0]" 
-              placeholder="Latitude" 
+            <input
+              type="number"
+              step="0.000001"
+              v-model="localBeacon.latLng[0]"
+              placeholder="Latitude"
               class="beacon-input-field"
             />
           </label>
           <label class="coor-item">
             <span class="coor-type">Longitude: </span>
-            <input 
-              type="number" 
-              step="0.000001" 
-              v-model="localBeacon.latLng[1]" 
-              placeholder="Longitude" 
+            <input
+              type="number"
+              step="0.000001"
+              v-model="localBeacon.latLng[1]"
+              placeholder="Longitude"
               class="beacon-input-field"
             />
           </label>
@@ -68,11 +68,7 @@ const props = defineProps<{
   floorId: string
 }>()
 
-const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'save-beacon', payload: { buildingId: string; floorId: string; newBeacon: Beacon }): void
-  (e: 'delete-beacon', payload: { buildingId: string; floorId: string; beaconId: string }): void
-}>()
+const emit = defineEmits(['save-beacon', 'delete-beacon'])
 
 const localBeacon = ref<Beacon>({ ...props.beacon })
 
@@ -93,6 +89,7 @@ function deleteBeacon() {
     buildingId: props.buildingId,
     floorId: props.floorId,
     beaconId: localBeacon.value.beaconId,
+    name: localBeacon.value.name,
   })
 }
 </script>

@@ -51,6 +51,8 @@
       </section>
     </main>
   </div>
+
+  <!-- OVERLAY -->
   <OverlayPanel :visible="overlayVisible" :title="overlayTitle" @close="overlayVisible = false">
     <component
       :is="overlayComponent"
@@ -63,9 +65,11 @@
       @save-node="saveNodeInfo"
     />
   </OverlayPanel>
+
+  <!-- POPUP -->
   <PopUpWindow name="popup" v-model:visible="showPopup">
-    <!-- IMAGE -->
-    <div v-if="popUpContent == 'UPDATE'">
+    <!-- UPLOAD IMAGE -->
+    <div v-if="popUpContent == 'UPDATE_FLOOR'">
       <div
         class="upload-box"
         @dragover.prevent
@@ -92,23 +96,35 @@
     </div>
 
     <!-- DELETE FLOOR -->
-    <div v-else-if="popUpContent == 'DELETE'">
-      <p>Are you sure you want to delete this floor?</p>
-      <p>This action can't be undone.</p>
-      <div class="actions">
-        <button @click="deleteFloorPlan">Confirm</button>
-        <button
-          @click="
-            () => {
-              showPopup = false
-              popUpContent = 'NAN'
-            }
-          "
-        >
-          Cancel
-        </button>
-      </div>
+    <div v-else-if="popUpContent == 'DELETE_FLOOR'">
+    <p class="popup-confirm-title">Are you sure you want to delete this floor?</p>
+    <p class="popup-confirm-subtext">This action can't be undone.</p>
+    <div class="actions">
+      <button class="deleteBtn" @click="deleteFloorPlan">Confirm</button>
+      <button class="cancelBtn" @click="cancelDelete">Cancel</button>
     </div>
+  </div>
+
+    <!-- DELETE POI -->
+    <div v-else-if="popUpContent == 'DELETE_POI'">
+    <p class="popup-confirm-title">Are you sure you want to delete this POI?</p>
+    <p class="popup-confirm-subtext"><a class="popup-confirm-item">"{{ pendingPOIDeletePayload.name || 'This POI' }}"</a> will be deleted, this action can't be undone.</p>
+    <div class="actions">
+      <button class="deleteBtn" @click="confirmDeletePOI">Confirm</button>
+      <button class="cancelBtn" @click="cancelDelete">Cancel</button>
+    </div>
+  </div>
+
+    <!-- DELETE BEAON -->
+    <div v-else-if="popUpContent == 'DELETE_BEACON'">
+    <p class="popup-confirm-title">Are you sure you want to delete this beacon?</p>
+    <p class="popup-confirm-subtext"><a class="popup-confirm-item">"{{ pendingBeaconDeletePayload?.name || 'This Beacon' }}"</a> will be deleted, this action can't be undone.</p>
+    <div class="actions">
+      <button class="deleteBtn" @click="confirmDeleteBeacon">Confirm</button>
+      <button class="cancelBtn" @click="cancelDelete">Cancel</button>
+    </div>
+  </div>
+
     <!-- ERROR -->
     <div v-else>
       <p>Something went wrong.....</p>
@@ -135,9 +151,13 @@ import { useFileSelector } from '@/composables/useFileSelector'
 import imageService from '@/services/imageService'
 // import { convertEditorToGraph } from '@/utils/pathConverter'
 
-type PopUpContent = 'UPDATE' | 'DELETE' | 'NAN'
+type PopUpContent = 'UPDATE_FLOOR' | 'DELETE_FLOOR' | 'DELETE_POI' | 'DELETE_BEACON' | 'NAN'
 const popUpContent = ref<PopUpContent>('NAN')
 const showPopup = ref(false)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pendingPOIDeletePayload = ref<any>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pendingBeaconDeletePayload = ref<any>(null)
 
 const router = useRouter()
 const route = useRoute()
@@ -166,7 +186,6 @@ const editorMode = computed<'PATH' | 'POI' | 'BEACON' | 'IDLE'>(() => {
     case 'building-pois':
       return 'POI'
     case 'building-beacons':
-      // console.log('nabbbu')
       return 'BEACON'
     default:
       return 'IDLE'
@@ -257,11 +276,22 @@ async function savePOIInfo(payload: any) {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function deletePOI(payload: any) {
-  const buildingId = payload.buildingId
-  const floor = payload.floorId
-  const poiId = payload.poiId
-  mapEditorRef.value?.removePOI(buildingId, floor, poiId)
+  pendingPOIDeletePayload.value = payload // Store the payload
+  popUpContent.value = 'DELETE_POI'      // Set popup mode
+  showPopup.value = true
+}
+async function confirmDeletePOI() {
+  if (!pendingPOIDeletePayload.value) {
+    console.error('No pending POI deletion to confirm.')
+    return
+  }
+  const { buildingId, floorId, poiId } = pendingPOIDeletePayload.value
+  mapEditorRef.value?.removePOI(buildingId, floorId, poiId)
+
   overlayVisible.value = false
+  showPopup.value = false
+  popUpContent.value = 'NAN'
+  pendingPOIDeletePayload.value = null
 }
 
 // Beacon Functions
@@ -272,9 +302,22 @@ async function saveBeaconInfo(payload: any) {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function deleteBeacon(payload: any) {
-  const { buildingId, floorId, beaconId } = payload
+  pendingBeaconDeletePayload.value = payload // Store payload
+  popUpContent.value = 'DELETE_BEACON'   // Set mode
+  showPopup.value = true
+}
+async function confirmDeleteBeacon() {
+  if (!pendingBeaconDeletePayload.value) {
+    console.error('No pending beacon deletion to confirm.')
+    return
+  }
+  const { buildingId, floorId, beaconId } = pendingBeaconDeletePayload.value
   mapEditorRef.value?.removeBeacon(buildingId, floorId, beaconId)
+
   overlayVisible.value = false
+  showPopup.value = false
+  popUpContent.value = 'NAN'
+  pendingBeaconDeletePayload.value = null
 }
 
 // Walkway Function
@@ -315,6 +358,13 @@ const selectFloorFile = async () => {
     input.click()
   })
   if (file) floorFileSelector.validateAndSetFile(file) // CHANGED
+}
+
+function cancelDelete() {
+  showPopup.value = false
+  popUpContent.value = 'NAN'
+  pendingPOIDeletePayload.value = null
+  pendingBeaconDeletePayload.value = null // <-- ADD THIS
 }
 
 onMounted(() => {
@@ -378,5 +428,51 @@ watch(editorMode, (newMode) => applyEditorMode(newMode), { immediate: true })
   display: flex;
   justify-content: center;
   gap: 1rem;
+}
+
+.popup-confirm-title {
+  font-size: 1.25rem; /* Makes it larger */
+  font-weight: 600;   /* Makes it bolder */
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.popup-confirm-item {
+  font-weight: 600; /* Keeps it bold */
+  color: #d9534f; /* Uses your delete color */
+  text-decoration: none; /* Optional: Removes underline from <a> */
+
+}
+
+.popup-confirm-subtext {
+  font-size: 0.9rem;
+  color: #777; /* Lighter text */
+}
+
+.cancelBtn,
+.deleteBtn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.cancelBtn {
+  color: #333;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+}
+.cancelBtn:hover {
+  background: #e0e0e0;
+}
+
+.deleteBtn {
+  color: #fff;
+  background: #d9534f;
+}
+.deleteBtn:hover {
+  background: #c9302c;
 }
 </style>

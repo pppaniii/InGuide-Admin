@@ -121,14 +121,15 @@ function saveNewPOIInfo() {
 
 function deletePOI() {
   const thisPOIId = localPOI.value?.id || ''
+  const POIName = localPOI.value?.name || '[ Unnamed POI ]'
   console.log(`deleting ${thisPOIId}`)
   const payload = {
     buildingId: props.buildingId,
     floorId: props.floorId,
     poiId: thisPOIId,
+    name: POIName
   }
   emit('delete-poi', payload)
-  emit('close')
 }
 
 async function handleAddImage(file: File) {

@@ -87,13 +87,7 @@ const {
   clearPath,
   pathSetNodeVisibility,
   setNodePortalGroup,
-} = usePathEditor(
-  map as Ref,
-  drawnItems,
-  buildingIdRef,
-  floorIdRef,
-  generateAndSaveNavigationGraph,
-)
+} = usePathEditor(map as Ref, drawnItems, buildingIdRef, floorIdRef, generateAndSaveNavigationGraph)
 
 // POI editor
 const {
@@ -133,7 +127,7 @@ onMounted(async () => {
       const names = await navigationGraphService.getPortalGroups(props.building.id)
       existingPortalNames.value = new Set(names)
     } catch (error) {
-      console.error("Failed to load portal groups:", error)
+      console.error('Failed to load portal groups:', error)
     }
   }
   map.value = L.map(toRaw(mapContainer.value) as HTMLElement, {
@@ -222,11 +216,11 @@ onMounted(async () => {
         data: {
           nodeId: nodeId,
           currentNodePortalName: currentName,
-          portalNames: existingPortalNames.value // Pass the set of names
+          portalNames: existingPortalNames.value, // Pass the set of names
         },
         loading: false,
         buildingId: props.building?.id as string,
-        floorId: props.floorId as string
+        floorId: props.floorId as string,
       })
     }
     if (editorState.value === 'CONNECTING') {
@@ -275,12 +269,10 @@ async function loadFloorData(newFloorId: string | null) {
 
   console.log('Loading data for floor:', newFloorId)
 
-  // Clear old layers (but only if there are old layers)
-  if (drawnItems.getLayers().length > 0) {
-    clearPath()
-    clearPOIs()
-    clearBeacons()
-  }
+  clearPath()
+  clearPOIs()
+  clearBeacons()
+  console.log('remove stuff')
 
   // This is the line that was failing before
   floorEditor.renderFloorPlan(newFloorId)

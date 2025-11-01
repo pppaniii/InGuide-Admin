@@ -52,13 +52,13 @@ const addFloorPlan = () => {
 
 const updateFloorPlan = async () => {
   if (!props.floorId || !props.mapEditorRef) return
-  emit('setPopUpContent', { content: 'UPDATE'})
+  emit('setPopUpContent', { content: 'UPDATE_FLOOR'})
   emit('openPopUp')
 }
 
 const deleteFloorPlan = () => {
   if (!props.floorId || !props.mapEditorRef) return
-  emit('setPopUpContent', { content: 'DELETE'})
+  emit('setPopUpContent', { content: 'DELETE_FLOOR'})
   emit('openPopUp')
 }
 

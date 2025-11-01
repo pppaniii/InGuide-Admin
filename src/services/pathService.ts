@@ -50,7 +50,7 @@ async function savePath(
 ) {
   try {
     const JSONPaths = exportGraph(markers, conns)
-    console.log(JSONPaths)
+    console.log("Path Save", JSONPaths)
     const response = await httpClient.post(`/paths/save/${buildingId}/${floorId}`, JSONPaths)
     const newBuilding = response.data.building
     return newBuilding
