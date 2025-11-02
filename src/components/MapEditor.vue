@@ -274,7 +274,6 @@ async function loadFloorData(newFloorId: string | null) {
   clearBeacons()
   console.log('remove stuff')
 
-  // This is the line that was failing before
   floorEditor.renderFloorPlan(newFloorId)
 
   await loadPath(props.building?.id as string, newFloorId)
