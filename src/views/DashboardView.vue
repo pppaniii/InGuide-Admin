@@ -12,10 +12,10 @@
 
       <!-- Page content -->
       <section class="content">
-        <div v-if="store.loading">Loading…</div>
-        <!-- Success message will automatically disappear -->
         <p v-if="successMsg" class="success-text">{{ successMsg }}</p>
-        <div class="grid">
+        <div v-if="store.loading && store.items.length == 0">Loading…</div>
+        <!-- Success message will automatically disappear -->
+        <div v-else class="grid">
           <!-- Existing buildings -->
           <BuildingCard
             v-for="b in store.items"
