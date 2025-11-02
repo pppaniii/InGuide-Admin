@@ -222,7 +222,7 @@ async function setPopUpContent(payload: any) {
 }
 
 // Handler function to update floorId (general functions)
-function handleFloorIdUpdate(newFloorId: string) {
+function handleFloorIdUpdate(newFloorId: string | null) { 
   floorId.value = newFloorId
 }
 async function handleOpenOverlay({
@@ -342,9 +342,9 @@ async function updateFloorPlan() {
   popUpContent.value = 'NAN'
 }
 function deleteFloorPlan() {
-  mapEditorRef.value?.deleteFloorPlan()
   showPopup.value = false
   popUpContent.value = 'NAN'
+  mapEditorRef.value?.deleteFloorPlan()
 }
 
 // trigger select floor file

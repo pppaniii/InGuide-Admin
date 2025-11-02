@@ -66,7 +66,7 @@ const emit = defineEmits<{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: { type: string; data: any; loading: boolean; buildingId: string; floorId: string },
   ): void
-  (e: 'update:floorId', newFloorId: string): void
+  (e: 'update:floorId', newFloorId: string | null): void
 }>()
 const buildingStore = useBuildings()
 const poiStore = usePOIStore()
@@ -347,12 +347,20 @@ function deleteFloorPlan() {
     const floor = buildingStore.floorById(props.floorId)
     if (floor) {
       floorEditor.deleteFloorPlan(props.floorId)
-      const newFloor = floor.floor - 1 > 0 ? floor.floor - 1 : 1
-      const newFloorId = buildingStore.current?.floors[newFloor - 1].id
-      if (newFloorId) emit('update:floorId', newFloorId)
-      else console.error('There is an error getting a new floor ID')
+      const remainingFloors = buildingStore.current?.floors
+
+      if (remainingFloors && remainingFloors.length > 0) {
+        const targetFloorNum = floor.floor - 1 > 0 ? floor.floor - 1 : 1
+        const newFloor = remainingFloors.find(f => f.floor === targetFloorNum) ?? remainingFloors[0]
+
+        emit('update:floorId', newFloor.id)
+      } else {
+        emit('update:floorId', null)
+      }
     }
-  } else console.error('there is no selected floor')
+  } else {
+    console.error('there is no selected floor')
+  }
 }
 
 function handlePortalSave(nodeId: string, newName: string | null) {
