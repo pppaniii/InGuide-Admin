@@ -2,7 +2,10 @@
   <div v-if="props.visible"
      class="popup-overlay">
   <div class="popup-content">
-    <button @click="close">✕</button>
+    <button @click="close">
+      <!-- <font-awesome-icon icon="xmark" /> -->
+       X
+    </button>
     <slot />
   </div>
 </div>

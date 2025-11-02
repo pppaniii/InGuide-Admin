@@ -10,7 +10,7 @@
   <div class="poi-panel">
     <!-- POI List -->
     <div class="poi-list-container">
-      <div class="poi-list">
+      <div class="poi-list" v-if="poiStore.pois?.length != 0">
         <button
           v-for="poi in poiStore.pois"
           :key="poi.id"
@@ -19,6 +19,9 @@
         >
           {{ poi.name }}
         </button>
+      </div>
+      <div v-else class="no-items">
+        No POI in this floor.
       </div>
     </div>
 

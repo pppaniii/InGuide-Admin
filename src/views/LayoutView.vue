@@ -384,7 +384,7 @@ watch(editorMode, (newMode) => applyEditorMode(newMode), { immediate: true })
 </script>
 
 <style src="@/styles/LayoutView.css"></style>
-<style scoped>
+<!-- <style scoped>
 .admin-shell {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -475,4 +475,4 @@ watch(editorMode, (newMode) => applyEditorMode(newMode), { immediate: true })
 .deleteBtn:hover {
   background: #c9302c;
 }
-</style>
+</style> -->

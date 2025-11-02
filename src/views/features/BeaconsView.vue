@@ -10,7 +10,7 @@
   <div class="beacon-panel">
     <!-- Beacon List -->
     <div class="beacon-list-container">
-      <div class="beacon-list">
+      <div class="beacon-list" v-if="beaconStore.beacons?.length != 0">
         <button
           v-for="beacon in beaconStore.beacons"
           :key="beacon.beaconId"
@@ -19,6 +19,9 @@
         >
           {{ beacon.name || beacon.beaconId }}
         </button>
+      </div>
+      <div v-else class="no-items">
+        No Beacon in this floor.
       </div>
     </div>
 

@@ -20,7 +20,7 @@
           {{ floor.floor }}
         </button>
       </div>
-      <div v-else>
+      <div v-else class="no-items">
         No floors available in this building.
       </div>
     </div>

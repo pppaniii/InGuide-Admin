@@ -8,7 +8,7 @@
   <div class="walkway-panel">
     <!-- show floor list, cant switch floor -->
     <div class="walkway-floor-list-container">
-      <div class="walkway-floor-list">
+      <div class="walkway-floor-list" v-if="(building?.floors?.length || 0) > 0">
         <div
           v-for="f in building?.floors ?? []"
           :key="f.id"
@@ -17,8 +17,10 @@
         >
           {{ f.floor }}
         </div>
-    </div>
-
+      </div>
+      <div v-else class="no-items">
+        No floors available in this building.
+      </div>
     </div>
 
     <!-- Actions -->

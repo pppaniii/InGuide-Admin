@@ -109,7 +109,10 @@
   <!-- Popup for deleting a building -->
   <PopUpWindow v-model:visible="showDeleteConfirm">
     <h2 class="popup-title">Confirm Deletion</h2>
-    <p class="confirm-text">Are you sure you want to delete this building? This action cannot be undone.</p>
+    <p class="confirm-text">Are you sure you want to delete 
+      <strong v-if="buildingNameToDelete">"{{ buildingNameToDelete }}"</strong> ? 
+      <br>This action cannot be undone.
+    </p>
     <div class="form-actions-delete">
       <button class="cancelBtn" @click="cancelDelete">Cancel</button>
       <button class="deleteBtn" @click="confirmDelete">Delete</button>
@@ -148,6 +151,11 @@ const form = ref({
 
 const errors = ref<string[]>([])
 const successMsg = ref('')
+
+const buildingNameToDelete = computed(() => {
+  const b = store.items.find((item) => item.id === buildingToDelete.value)
+  return b ? b.name : ''
+})
 
 /**
  * Clears the success message after 5 seconds.
@@ -387,6 +395,11 @@ input:focus {
   font-size: 1rem;
   color: #333;
   margin-bottom: 20px;
+}
+
+.confirm-text strong {
+  font-weight: 600;
+  color: #d9534f;
 }
 
 .form-actions-delete {

@@ -1,5 +1,5 @@
 <template>
-  <div class="poi-edit">
+  <div class="editor">
     <div v-if="isLoading">Loading POI...</div>
     <div v-else-if="localPOI">
 
@@ -16,7 +16,7 @@
       <hr class="section-divider">
 
       <!-- Infomation Edit -->
-      <label class="poi-field info">
+      <label class="field info">
         <span class="title">Infomation</span>
         <textarea
           class="textarea"
@@ -27,7 +27,7 @@
       </label>
 
       <!-- Tag Select -->
-      <label class="poi-field">
+      <label class="field">
         <span class="title">Tag</span>
         <div class="select-wrap">
           <select v-model="localPOI.type" class="select">
@@ -40,7 +40,7 @@
       </label>
 
       <!-- Image -->
-      <div class="poi-field">
+      <div class="field">
         <span class="title">Image of Place</span>
         <ImageGallery
           :images="localPOI.images"
@@ -66,10 +66,10 @@
       </div>
 
       <!-- Action button -->
-      <div class="poi-editor-action">
-        <button type="button" class="poi-editor-btn cancel" @click="deletePOI">Delete</button>
+      <div class="editor-action">
+        <button type="button" class="editor-btn cancel" @click="deletePOI">Delete</button>
         <!-- <button type="button" class="btn ghost">Edit Position</button> -->
-        <button type="button" class="poi-editor-btn save" @click="saveNewPOIInfo">Save</button>
+        <button type="button" class="editor-btn save" @click="saveNewPOIInfo">Save</button>
       </div>
     </div>
 
@@ -149,4 +149,4 @@ async function handleRemoveImage(index: number) {
 }
 </script>
 
-<style src="../../styles/POIEditor.css"></style>
+<style src="../../styles/Editor.css"></style>

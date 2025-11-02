@@ -26,7 +26,7 @@ defineEmits(['close'])
   position: absolute;
   top: 70px;
   right: 0;
-  width: 380px;
+  width: 430px;
   height: 91.5%;
   background: #D8EAD2;
   box-shadow: -2px 0 8px rgba(0,0,0,0.1);
