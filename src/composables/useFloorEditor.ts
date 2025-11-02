@@ -38,7 +38,6 @@ export function useFloorEditor(map: Ref<Map | null>) {
       return
     }
 
-    // remove old overlay
     if (floorOverlay) {
       toRaw(map.value)?.removeLayer(floorOverlay)
       floorOverlay = null
@@ -46,9 +45,6 @@ export function useFloorEditor(map: Ref<Map | null>) {
 
     const buildingBound = buildingStore.getCurrentBuildingBound()
 
-    // --- FIX ---
-    // Check if the floor_plan_url exists (is not null, undefined, or empty).
-    // If not, use the baseImgUrl as a fallback.
     const imageUrl = floor.floor_plan_url || baseImgUrl
 
     if (!floor.floor_plan_url) {
@@ -56,12 +52,12 @@ export function useFloorEditor(map: Ref<Map | null>) {
         `[renderFloorPlan] Floor ${floorId} has no 'floor_plan_url'. Using default fallback image.`
       )
     }
-    // --- END FIX ---
 
-    // add new overlay
     const overlay = L.imageOverlay(imageUrl, buildingBound)
     overlay.addTo(toRaw(map.value)!)
     floorOverlay = overlay
+    toRaw(map.value)?.fitBounds(buildingBound)
+
     toRaw(map.value)?.invalidateSize()
   }
 
