@@ -90,8 +90,8 @@
         />
       </div>
       <div class="actions" v-if="floorFileSelector.isSelectedFile()">
-        <button @click="updateFloorPlan">Confirm</button>
-        <button @click="floorFileSelector.clearFile">Cancel</button>
+        <button class="update-floor-confirm-btn" @click="updateFloorPlan">Confirm</button>
+        <button class="cancel-floor-confirm-btn" @click="floorFileSelector.clearFile">Cancel</button>
       </div>
     </div>
 

@@ -95,7 +95,9 @@ h3 {
 }
 
 .cancelBtn,
-.deleteBtn {
+.deleteBtn,
+.update-floor-confirm-btn,
+.cancel-floor-confirm-btn {
   padding: 10px 16px;
   border: none;
   border-radius: 6px;
@@ -104,11 +106,30 @@ h3 {
   transition: background 0.2s ease;
 }
 
+.update-floor-confirm-btn {
+  background-color: #A3C4A8;
+  color: #fff;
+}
+
+.update-floor-confirm-btn:hover {
+  background-color: #7d9b82;
+}
+
+.cancel-floor-confirm-btn {
+  background-color: #d9534f;
+  color: #fff;
+}
+
+.cancel-floor-confirm-btn:hover {
+  background-color: #c9302c;
+}
+
 .cancelBtn {
   color: #333;
   background: #f0f0f0;
   border: 1px solid #ccc;
 }
+
 .cancelBtn:hover {
   background: #e0e0e0;
 }
@@ -117,6 +138,7 @@ h3 {
   color: #fff;
   background: #d9534f;
 }
+
 .deleteBtn:hover {
   background: #c9302c;
 }

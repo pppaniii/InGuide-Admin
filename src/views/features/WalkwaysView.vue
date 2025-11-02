@@ -13,7 +13,7 @@
           v-for="f in building?.floors ?? []"
           :key="f.id"
           class="walkway-floor-item"
-          :class="{ active: f.id === floorId.value }"
+          :class="{ active: String(f.id) === String(props.floorId ?? '') }"
         >
           {{ f.floor }}
         </div>
@@ -34,13 +34,13 @@
 <script setup lang="ts">
 import type { BuildingInfo } from '@/types/types'
 import MapEditor from '@/components/MapEditor.vue'
-import type { Ref } from 'vue'
+// import type { Ref } from 'vue'
 
 const props = defineProps<{
   building: BuildingInfo | null
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
-  floorId: Ref<string>
+  floorId: string | null
 }>()
 
 function triggerMapConnect() {
