@@ -222,7 +222,7 @@ async function setPopUpContent(payload: any) {
 }
 
 // Handler function to update floorId (general functions)
-function handleFloorIdUpdate(newFloorId: string | null) { 
+function handleFloorIdUpdate(newFloorId: string | null) {
   floorId.value = newFloorId
 }
 async function handleOpenOverlay({
@@ -376,7 +376,7 @@ onMounted(() => {
   console.log('file: ', floorFileSelector.file) // CHANGED
   // Reapply mode after mount
   applyEditorMode(editorMode.value)
-  floorId.value = building.value?.floors[0].id as string
+  floorId.value = building.value?.floors[0]?.id ?? null
   applyEditorMode('IDLE')
 })
 

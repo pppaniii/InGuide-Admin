@@ -43,7 +43,7 @@ const props = defineProps<{
   building: BuildingInfo
   id: string
   mapEditorRef: InstanceType<typeof MapEditor> | null
-  floorId: string
+  floorId: string | null
 }>()
 
 const addFloorPlan = () => {
