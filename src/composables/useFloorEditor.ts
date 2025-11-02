@@ -4,7 +4,7 @@ import { useBuildings } from '@/stores/buildings'
 
 // This is the default image that will be used if a floor has no image URL
 const baseImgUrl =
-  'https://firebasestorage.googleapis.com/v0/b/inguide-se953499.firebasestorage.app/o/sample-img.jpg?alt=media&token=b90aec28-877e-41a6-a992-4ae2fca58109'
+  'https://firebasestorage.googleapis.com/v0/b/inguide-se953499.firebasestorage.app/o/blankImage.jpg?alt=media&token=233665f8-dc0a-4ac6-afb6-0630b40cc59c'
 
 export function useFloorEditor(map: Ref<Map | null>) {
   const buildingStore = useBuildings()
