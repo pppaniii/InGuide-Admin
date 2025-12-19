@@ -133,8 +133,25 @@ function deletePOI() {
 }
 
 async function handleAddImage(file: File) {
-  const imgUrl: string = await imageService.uploadImage(file)
-  localPOI.value?.images.push(imgUrl)
+  const imgUrl: string = await imageService.uploadImage(file);
+
+  // 1. Guard Clause: First, check if the main object exists.
+  //    If it's null, we can't do anything.
+  if (!localPOI.value) {
+    console.error("Cannot add image: localPOI is not set.");
+    return;
+  }
+
+  // 2. Now that TypeScript knows localPOI.value is not null,
+  //    we can safely use the dot '.' operator.
+
+  if (Array.isArray(localPOI.value.images)) {
+    // 3. If the 'images' array already exists, push the new URL.
+    localPOI.value.images.push(imgUrl);
+  } else {
+    // 4. If 'images' is undefined or null, create a new array.
+    localPOI.value.images = [imgUrl];
+  }
 }
 
 async function handleRemoveImage(index: number) {

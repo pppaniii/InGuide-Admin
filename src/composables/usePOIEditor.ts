@@ -73,6 +73,7 @@ export function usePoiEditor(
   }
 
   function addOrUpdatePOI(buildingId: string, floorId: string, poi: POI) {
+    console.log("Bugger", floorId)
     poiService
       .addOrUpdatePOI(buildingId, floorId, poi)
       .then(() => {

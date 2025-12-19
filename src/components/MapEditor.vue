@@ -290,7 +290,9 @@ async function generateAndSaveNavigationGraph() {
     if (nodeMarkers == undefined) return
     if (connections == undefined) return
     if (poisStore.pois == null) return
+    console.log("swdfghjk", nodeMarkers, connections)
     const graph = convertEditorToGraph(nodeMarkers, connections)
+    console.log("lkjhgfds", graph)
     const mergedGraph = mergePOIsIntoGraph(graph, poiStore.pois as POI[])
     console.log(mergedGraph)
     const buildingId: string = props.building?.id as string

@@ -111,6 +111,12 @@ export function mergePOIsIntoGraph(adminGraph: NavigationGraph, pois: POI[]): JS
     // Add reciprocal edge: to -> poi
     edgesTo.push({ targetNodeId: poiNodeId, weight: weight2 })
   }
+  console.log("Culprit", {
+    nodes: Array.from(nodes.values()),
+    adjacencyList: Object.fromEntries(adjacencyList.entries()),
+  })
+  console.log('FUNCTION RECEIVED THESE POIs:', JSON.stringify(pois))
+    console.log('FUNCTION RECEIVED THESE PATHs:', JSON.stringify(adminGraph.nodes), JSON.stringify(adminGraph.adjacencyList))
   // 6. Convert Map to JSON-friendly format
   return {
     nodes: Array.from(nodes.values()),
